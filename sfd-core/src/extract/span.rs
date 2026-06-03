@@ -9,6 +9,9 @@ pub struct Span {
 
 impl Span {
     pub fn new(src: Source, line: usize, col: usize) -> Self {
+        assert!(line < src.lines().len());
+        assert!(col <= src.lines()[line].len());
+
         Self { src, line, col }
     }
 }
