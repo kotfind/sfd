@@ -21,6 +21,7 @@
 
       rustToolchain = fenix.packages.${system}.stable.withComponents [
         "rustc"
+        "rustfmt"
         "cargo"
         "clippy"
         "rust-src"
