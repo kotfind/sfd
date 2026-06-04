@@ -1,5 +1,4 @@
-use config::{File, FileFormat};
-use serde::Deserialize;
+use schematic::ConfigLoader;
 use thiserror::Error;
 
 use crate::dirs::DIRS;
@@ -8,34 +7,32 @@ const CONFIG_NAMES: &[&str] = &["sfd.yaml", "sfd.yml"];
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
-    #[error("failed to parse config: {0}")]
-    Parse(#[from] config::ConfigError),
+    #[error("failed to load config: {0}")]
+    Load(#[from] schematic::ConfigError),
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, schematic::Config)]
 pub struct Config {
-    #[serde(default)]
+    #[setting(default = String::new())]
     pub sample: String,
 }
 
 impl Config {
     pub fn load() -> Result<Self, ConfigError> {
-        let user_conf = CONFIG_NAMES.iter().map(|name| DIRS.config_dir().join(name));
+        let user_paths = CONFIG_NAMES.iter().map(|name| DIRS.config_dir().join(name));
 
         let cwd = std::env::current_dir().expect("failed to get CWD");
-        let proj_conf = cwd
+        let proj_paths = cwd
             .ancestors()
-            .flat_map(|dir| ["sfd.yaml", "sfd.yml"].iter().map(|name| dir.join(name)));
+            .flat_map(|dir| CONFIG_NAMES.iter().map(|name| dir.join(name)));
 
-        let settings = user_conf
-            .chain(proj_conf)
-            .fold(config::Config::builder(), |builder, path| {
-                builder
-                    .add_source(File::new(path.to_str().unwrap(), FileFormat::Yaml).required(false))
-            })
-            .build()?
-            .try_deserialize()?;
+        let mut loader = ConfigLoader::new();
+        for path in user_paths.chain(proj_paths) {
+            loader.file_optional(path)?;
+        }
 
-        Ok(settings)
+        let config = loader.load()?.config;
+
+        Ok(config)
     }
 }

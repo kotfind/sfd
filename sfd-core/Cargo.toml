@@ -6,6 +6,6 @@ edition = "2024"
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 thiserror = "2"
-config = { version = "0.14", features = ["yaml"] }
+schematic = { version = "0.19", features = ["yaml"] }
 serde = { version = "1", features = ["derive"] }
 directories = "6"
