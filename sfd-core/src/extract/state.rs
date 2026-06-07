@@ -1,14 +1,11 @@
-use std::collections::HashMap;
-use std::fs;
-use std::sync::Arc;
+use std::{collections::HashMap, fs, sync::Arc};
 
 use derive_more::Debug;
 use tokio::sync::Mutex;
 use tree_sitter::{Language, Query, WasmStore};
 use wasmtime::Engine;
 
-use crate::config::Config;
-use crate::extract::error::Error;
+use crate::{config::Config, extract::error::Error};
 
 #[derive(Debug)]
 pub struct LangState {

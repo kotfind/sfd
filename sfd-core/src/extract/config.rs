@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
 #[derive(Debug, schematic::Config)]
 pub struct ExtractConfig {
