@@ -1,9 +1,12 @@
 use std::{collections::HashMap, path::PathBuf};
 
 #[derive(Debug, schematic::Config)]
-pub struct ExtractConfig {
+pub struct Config {
     #[setting(nested)]
     pub langs: HashMap<String, LangConfig>,
+
+    #[setting(skip)]
+    pub root_path: Option<PathBuf>,
 }
 
 #[derive(Debug, schematic::Config)]

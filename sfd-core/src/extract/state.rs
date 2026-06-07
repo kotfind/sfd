@@ -6,7 +6,7 @@ use tree_sitter::{Language, Query, WasmStore};
 use wasmtime::Engine;
 
 use crate::{
-    config::Config,
+    config::spec::Config,
     extract::{
         error::Error,
         extractor::{COMMENT_CAPTURE, ITEM_CAPTURE},
@@ -51,7 +51,7 @@ impl State {
         let mut wasm_store = WasmStore::new(&wasm_engine)?;
         let mut langs = HashMap::new();
 
-        for (name, lang_cfg) in &config.extract.langs {
+        for (name, lang_cfg) in &config.langs {
             let wasm_bytes = fs::read(&lang_cfg.parser)?;
             let lang = wasm_store.load_language(name, &wasm_bytes)?;
             let query = Query::new(&lang, &lang_cfg.query)?;

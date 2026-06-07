@@ -4,38 +4,21 @@ use std::{
 };
 
 use schematic::ConfigLoader;
-use thiserror::Error;
 
 use crate::dirs::DIRS;
-use crate::extract::config::{ExtractConfig, PartialExtractConfig};
+
+use super::error::Error;
+use super::spec::Config;
 
 const CONFIG_NAMES: &[&str] = &["sfd.yaml", "sfd.yml"];
 
-#[derive(Debug, Error)]
-pub enum ConfigError {
-    #[error("failed to load config: {0}")]
-    Load(#[from] schematic::ConfigError),
-
-    #[error("user config file not found: sfd.yaml or sfd.yml expected in {0}")]
-    UserConfigNotFound(PathBuf),
-}
-
-#[derive(Debug, schematic::Config)]
-pub struct Config {
-    #[setting(nested)]
-    pub extract: ExtractConfig,
-
-    #[setting(skip)]
-    pub root_path: Option<PathBuf>,
-}
-
 impl Config {
-    pub fn load() -> Result<Self, ConfigError> {
+    pub fn load() -> Result<Self, Error> {
         let cwd = std::env::current_dir().expect("failed to get CWD");
 
         let config_dir = DIRS.config_dir().to_path_buf();
         let user_cfg = get_first_existing([&config_dir], CONFIG_NAMES)
-            .ok_or_else(|| ConfigError::UserConfigNotFound(config_dir.clone()))?;
+            .ok_or_else(|| Error::UserConfigNotFound(config_dir.clone()))?;
         let proj_cfg = get_first_existing(cwd.ancestors(), CONFIG_NAMES);
 
         let mut loader = ConfigLoader::new();
