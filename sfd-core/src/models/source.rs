@@ -3,13 +3,13 @@ use std::{
     sync::Arc,
 };
 
-use crate::extract::error::Error;
+use crate::{config::spec::Config, extract::error::Error};
 
 #[derive(Debug, Clone)]
 struct SourceInner {
     path: PathBuf,
 
-    ext: Option<String>,
+    lang: Option<String>,
 
     content: String,
 }
@@ -20,14 +20,14 @@ pub struct Source {
 }
 
 impl Source {
-    pub async fn new(path: impl Into<PathBuf>) -> Result<Self, Error> {
+    pub async fn new(path: impl Into<PathBuf>, config: &Config) -> Result<Self, Error> {
         let path: PathBuf = path.into();
         let source = tokio::fs::read_to_string(&path).await?;
-        let ext = path.extension().and_then(|e| e.to_str().map(String::from));
+        let lang = guess_lang(&path, config);
         Ok(Self {
             inner: Arc::new(SourceInner {
                 path,
-                ext,
+                lang,
                 content: source,
             }),
         })
@@ -37,11 +37,22 @@ impl Source {
         &self.inner.path
     }
 
-    pub fn ext(&self) -> Option<&str> {
-        self.inner.ext.as_deref()
+    pub fn lang(&self) -> Option<&str> {
+        self.inner.lang.as_deref()
     }
 
     pub fn content(&self) -> &str {
         &self.inner.content
     }
+}
+
+fn guess_lang(path: &Path, config: &Config) -> Option<String> {
+    let ext = path.extension()?.to_str()?;
+    config.langs.iter().find_map(|(name, lang_cfg)| {
+        lang_cfg
+            .exts
+            .iter()
+            .any(|e| e == ext)
+            .then_some(name.clone())
+    })
 }

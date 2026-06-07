@@ -1,28 +1,12 @@
 use tree_sitter::{Parser, QueryCursor, StreamingIterator};
 
 use crate::{
-    extract::{
-        error::Error,
-        state::{LangState, State},
-    },
+    extract::{error::Error, state::LangState},
     models::{comment::Comment, ident::Ident, item::Item, source::Source, span::Span},
 };
 
 pub const COMMENT_CAPTURE: &str = "comment";
 pub const ITEM_CAPTURE: &str = "item";
-
-pub async fn guess_lang(src: &Source, state: &State) -> Option<LangState> {
-    let ext = src.ext()?;
-    let inner = state.inner.lock().await;
-    inner.langs.iter().find_map(|(_, lang_state)| {
-        lang_state
-            .inner
-            .exts
-            .iter()
-            .any(|e| e == ext)
-            .then_some(lang_state.clone())
-    })
-}
 
 pub fn extract_file(src: &Source, lang: &LangState) -> Result<Vec<Item>, Error> {
     let mut parser = Parser::new();
