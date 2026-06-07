@@ -9,3 +9,8 @@ pub(crate) fn validate_absolute<T, C>(path: &Path, _: &T, _: &C, _: bool) -> Val
         Ok(())
     }
 }
+
+pub(crate) fn to_rel(path: &Path, root: impl AsRef<Path>) -> &Path {
+    path.strip_prefix(root.as_ref())
+        .expect("path is outside of project root")
+}

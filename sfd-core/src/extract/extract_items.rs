@@ -1,6 +1,4 @@
-use tree_sitter::{
-    Node, Parser, QueryCapture, QueryCursor, QueryMatch, QueryMatches, StreamingIterator, Tree,
-};
+use tree_sitter::{Node, Parser, QueryCapture, QueryCursor, QueryMatch, StreamingIterator, Tree};
 
 use crate::{
     extract::{
