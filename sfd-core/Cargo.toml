@@ -9,3 +9,4 @@ thiserror = "2"
 schematic = { version = "0.19", features = ["yaml"] }
 serde = { version = "1", features = ["derive"] }
 directories = "6"
+url = { version = "2.5.8", features = ["serde"] }
