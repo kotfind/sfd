@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 use std::fs;
+use std::sync::Arc;
 
 use derive_more::Debug;
+use tokio::sync::Mutex;
 use tree_sitter::{Language, Query, WasmStore};
 use wasmtime::Engine;
 
@@ -20,14 +22,19 @@ pub struct LangState {
 }
 
 #[derive(Debug)]
+struct StateInner {
+    langs: HashMap<String, LangState>,
+
+    #[debug(skip)]
+    wasm_engine: Engine,
+
+    #[debug(skip)]
+    wasm_store: WasmStore,
+}
+
+#[derive(Debug, Clone)]
 pub struct State {
-    pub langs: HashMap<String, LangState>,
-
-    #[debug(skip)]
-    pub wasm_engine: Engine,
-
-    #[debug(skip)]
-    pub wasm_store: WasmStore,
+    inner: Arc<Mutex<StateInner>>,
 }
 
 impl State {
@@ -49,9 +56,11 @@ impl State {
         }
 
         Ok(Self {
-            langs,
-            wasm_engine,
-            wasm_store,
+            inner: Arc::new(Mutex::new(StateInner {
+                langs,
+                wasm_engine,
+                wasm_store,
+            })),
         })
     }
 }
