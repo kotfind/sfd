@@ -1,4 +1,7 @@
-use std::{path::{Path, PathBuf}, sync::Arc};
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 use crate::extract::error::Error;
 
@@ -22,7 +25,11 @@ impl Source {
         let source = tokio::fs::read_to_string(&path).await?;
         let ext = path.extension().and_then(|e| e.to_str().map(String::from));
         Ok(Self {
-            inner: Arc::new(SourceInner { path, ext, content: source }),
+            inner: Arc::new(SourceInner {
+                path,
+                ext,
+                content: source,
+            }),
         })
     }
 

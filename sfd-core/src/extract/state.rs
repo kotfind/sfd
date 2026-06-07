@@ -5,7 +5,13 @@ use tokio::sync::Mutex;
 use tree_sitter::{Language, Query, WasmStore};
 use wasmtime::Engine;
 
-use crate::{config::Config, extract::{error::Error, extractor::{COMMENT_CAPTURE, ITEM_CAPTURE}}};
+use crate::{
+    config::Config,
+    extract::{
+        error::Error,
+        extractor::{COMMENT_CAPTURE, ITEM_CAPTURE},
+    },
+};
 
 #[derive(Debug)]
 pub(crate) struct LangStateInner {
@@ -55,14 +61,17 @@ impl State {
                 return Err(Error::InvalidQuery);
             }
 
-            langs.insert(name.clone(), LangState {
-                inner: Arc::new(LangStateInner {
-                    name: name.clone(),
-                    exts: lang_cfg.exts.clone(),
-                    lang,
-                    query,
-                }),
-            });
+            langs.insert(
+                name.clone(),
+                LangState {
+                    inner: Arc::new(LangStateInner {
+                        name: name.clone(),
+                        exts: lang_cfg.exts.clone(),
+                        lang,
+                        query,
+                    }),
+                },
+            );
         }
 
         Ok(Self {

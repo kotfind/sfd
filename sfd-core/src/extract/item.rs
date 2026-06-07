@@ -11,6 +11,10 @@ pub struct Item {
 
 impl Item {
     pub fn new(comment: Comment, ident: Ident, span: Span) -> Self {
-        Self { comment, ident, span }
+        Self {
+            comment,
+            ident,
+            span,
+        }
     }
 }

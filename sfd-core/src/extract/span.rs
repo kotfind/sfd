@@ -13,6 +13,11 @@ pub struct Span {
 
 impl Span {
     pub fn new(src: Source, offset: usize, line: usize, col: usize) -> Self {
-        Self { src, offset, line, col }
+        Self {
+            src,
+            offset,
+            line,
+            col,
+        }
     }
 }

@@ -17,7 +17,9 @@ pub enum Error {
     #[error("failed to compile query: {0}")]
     Query(#[from] QueryError),
 
-    #[error("query must have exactly one @{COMMENT_CAPTURE} and exactly one @{ITEM_CAPTURE} capture")]
+    #[error(
+        "query must have exactly one @{COMMENT_CAPTURE} and exactly one @{ITEM_CAPTURE} capture"
+    )]
     InvalidQuery,
 
     #[error("no matching language found for the source file")]
