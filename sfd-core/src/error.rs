@@ -22,6 +22,9 @@ pub enum Error {
     )]
     InvalidQuery,
 
+    #[error("match is missing @{0} capture")]
+    MissingCapture(&'static str),
+
     #[error("no matching language found for the source file")]
     LangNotFound,
 

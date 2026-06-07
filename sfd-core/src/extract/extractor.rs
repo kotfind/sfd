@@ -43,8 +43,8 @@ pub fn extract_file(src: &Source, lang: &LangState) -> Result<Vec<Item>, Error> 
                 _ => {}
             }
         }
-        let comment_node = comment_node.expect("@comment capture should be present");
-        let item_node = item_node.expect("@item capture should be present");
+        let comment_node = comment_node.ok_or(Error::MissingCapture(COMMENT_CAPTURE))?;
+        let item_node = item_node.ok_or(Error::MissingCapture(ITEM_CAPTURE))?;
 
         let comment_text = comment_node
             .utf8_text(content.as_bytes())
