@@ -1,4 +1,4 @@
-use crate::extract::{comment::Comment, ident::Ident, span::Span};
+use crate::models::{comment::Comment, ident::Ident, span::Span};
 
 #[derive(Debug, Clone)]
 pub struct Item {

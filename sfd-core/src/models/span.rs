@@ -1,4 +1,4 @@
-use crate::extract::source::Source;
+use crate::models::source::Source;
 
 #[derive(Debug, Clone)]
 pub struct Span {

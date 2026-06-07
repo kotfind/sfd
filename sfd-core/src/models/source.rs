@@ -3,7 +3,7 @@ use std::{
     sync::Arc,
 };
 
-use crate::extract::error::Error;
+use crate::error::Error;
 
 #[derive(Debug, Clone)]
 struct SourceInner {

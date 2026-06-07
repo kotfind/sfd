@@ -1,13 +1,9 @@
 use tree_sitter::{Parser, QueryCursor, StreamingIterator};
 
-use crate::extract::{
-    comment::Comment,
+use crate::{
     error::Error,
-    ident::Ident,
-    item::Item,
-    source::Source,
-    span::Span,
-    state::{LangState, State},
+    extract::state::{LangState, State},
+    models::{comment::Comment, ident::Ident, item::Item, source::Source, span::Span},
 };
 
 pub const COMMENT_CAPTURE: &str = "comment";
