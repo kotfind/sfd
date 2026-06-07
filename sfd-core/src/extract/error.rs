@@ -1,7 +1,7 @@
 use thiserror::Error;
 use tree_sitter::{LanguageError, QueryError, WasmError};
 
-use crate::extract::extractor::{COMMENT_CAPTURE, ITEM_CAPTURE};
+use crate::extract::extract_items::{COMMENT_CAPTURE, ITEM_CAPTURE};
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -22,11 +22,17 @@ pub enum Error {
     )]
     InvalidQuery,
 
-    #[error("match is missing @{0} capture")]
-    MissingCapture(&'static str),
+    #[error("match has multiple @{0} captures, expected exactly one")]
+    MultipleCaptures(String),
 
-    #[error("no matching language found for the source file")]
-    LangNotFound,
+    #[error("match is missing @{0} capture")]
+    MissingCapture(String),
+
+    #[error("no language detected for the source file")]
+    NoLang,
+
+    #[error("source file contains syntax errors")]
+    SyntaxError,
 
     #[error("tree-sitter returned a non-utf8 slice")]
     NonUtf8,

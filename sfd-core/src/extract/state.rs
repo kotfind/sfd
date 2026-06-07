@@ -9,7 +9,7 @@ use crate::{
     config::spec::Config,
     extract::{
         error::Error,
-        extractor::{COMMENT_CAPTURE, ITEM_CAPTURE},
+        extract_items::{COMMENT_CAPTURE, ITEM_CAPTURE},
     },
 };
 
@@ -46,6 +46,15 @@ pub struct State {
 }
 
 impl State {
+    pub fn get_lang(&self, name: &str) -> LangState {
+        let inner = self.inner.blocking_lock();
+        inner
+            .langs
+            .get(name)
+            .expect("language not found in state")
+            .clone()
+    }
+
     pub fn new(config: &Config) -> Result<Self, Error> {
         let wasm_engine = Engine::default();
         let mut wasm_store = WasmStore::new(&wasm_engine)?;
