@@ -6,7 +6,9 @@ use crate::extract::error::Error;
 struct SourceInner {
     path: PathBuf,
 
-    lines: Vec<String>,
+    ext: Option<String>,
+
+    content: String,
 }
 
 #[derive(Debug, Clone)]
@@ -18,9 +20,9 @@ impl Source {
     pub async fn new(path: impl Into<PathBuf>) -> Result<Self, Error> {
         let path: PathBuf = path.into();
         let source = tokio::fs::read_to_string(&path).await?;
-        let lines = source.lines().map(String::from).collect();
+        let ext = path.extension().and_then(|e| e.to_str().map(String::from));
         Ok(Self {
-            inner: Arc::new(SourceInner { path, lines }),
+            inner: Arc::new(SourceInner { path, ext, content: source }),
         })
     }
 
@@ -28,7 +30,11 @@ impl Source {
         &self.inner.path
     }
 
-    pub fn lines(&self) -> &[String] {
-        &self.inner.lines
+    pub fn ext(&self) -> Option<&str> {
+        self.inner.ext.as_deref()
+    }
+
+    pub fn content(&self) -> &str {
+        &self.inner.content
     }
 }

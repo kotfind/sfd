@@ -1,6 +1,7 @@
 pub mod comment;
 pub mod config;
 pub mod error;
+pub mod extractor;
 pub mod ident;
 pub mod item;
 pub mod source;

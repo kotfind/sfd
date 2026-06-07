@@ -37,6 +37,8 @@
             cargo-expand
             cargo-machete
             cargo-autoinherit
+
+            cmake
           ]);
       };
     in {

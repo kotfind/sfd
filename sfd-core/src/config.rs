@@ -1,4 +1,7 @@
-use std::{fs, path::{Path, PathBuf}};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use schematic::ConfigLoader;
 use thiserror::Error;
@@ -12,26 +15,36 @@ const CONFIG_NAMES: &[&str] = &["sfd.yaml", "sfd.yml"];
 pub enum ConfigError {
     #[error("failed to load config: {0}")]
     Load(#[from] schematic::ConfigError),
+
+    #[error("user config file not found: sfd.yaml or sfd.yml expected in {0}")]
+    UserConfigNotFound(PathBuf),
 }
 
 #[derive(Debug, schematic::Config)]
 pub struct Config {
     #[setting(nested)]
     pub extract: ExtractConfig,
+
+    #[setting(skip)]
+    pub root_path: Option<PathBuf>,
 }
 
 impl Config {
-    fn load() -> Result<Self, ConfigError> {
+    pub fn load() -> Result<Self, ConfigError> {
         let cwd = std::env::current_dir().expect("failed to get CWD");
 
-        let user_cfg = get_first_existing([DIRS.config_dir()], CONFIG_NAMES);
+        let config_dir = DIRS.config_dir().to_path_buf();
+        let user_cfg = get_first_existing([&config_dir], CONFIG_NAMES)
+            .ok_or_else(|| ConfigError::UserConfigNotFound(config_dir.clone()))?;
         let proj_cfg = get_first_existing(cwd.ancestors(), CONFIG_NAMES);
 
         let mut loader = ConfigLoader::new();
-        for file in user_cfg.iter().chain(proj_cfg.iter()) {
-            loader.file_optional(file)?;
+        loader.file(&user_cfg)?;
+        if let Some(ref proj_cfg) = proj_cfg {
+            loader.file_optional(proj_cfg)?;
         }
-        let cfg = loader.load()?.config;
+        let mut cfg: Config = loader.load()?.config;
+        cfg.root_path = Some(config_dir);
 
         Ok(cfg)
     }

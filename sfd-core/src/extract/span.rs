@@ -4,16 +4,15 @@ use crate::extract::source::Source;
 pub struct Span {
     pub src: Source,
 
+    pub offset: usize,
+
     pub line: usize,
 
     pub col: usize,
 }
 
 impl Span {
-    pub fn new(src: Source, line: usize, col: usize) -> Self {
-        assert!(line < src.lines().len());
-        assert!(col <= src.lines()[line].len());
-
-        Self { src, line, col }
+    pub fn new(src: Source, offset: usize, line: usize, col: usize) -> Self {
+        Self { src, offset, line, col }
     }
 }

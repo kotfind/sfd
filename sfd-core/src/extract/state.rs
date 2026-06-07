@@ -5,10 +5,10 @@ use tokio::sync::Mutex;
 use tree_sitter::{Language, Query, WasmStore};
 use wasmtime::Engine;
 
-use crate::{config::Config, extract::error::Error};
+use crate::{config::Config, extract::{error::Error, extractor::{COMMENT_CAPTURE, ITEM_CAPTURE}}};
 
 #[derive(Debug)]
-pub struct LangState {
+pub(crate) struct LangStateInner {
     pub name: String,
 
     pub exts: Vec<String>,
@@ -18,9 +18,14 @@ pub struct LangState {
     pub query: Query,
 }
 
+#[derive(Clone, Debug)]
+pub struct LangState {
+    pub(crate) inner: Arc<LangStateInner>,
+}
+
 #[derive(Debug)]
-struct StateInner {
-    langs: HashMap<String, LangState>,
+pub(crate) struct StateInner {
+    pub(crate) langs: HashMap<String, LangState>,
 
     #[debug(skip)]
     wasm_engine: Engine,
@@ -31,7 +36,7 @@ struct StateInner {
 
 #[derive(Debug, Clone)]
 pub struct State {
-    inner: Arc<Mutex<StateInner>>,
+    pub(crate) inner: Arc<Mutex<StateInner>>,
 }
 
 impl State {
@@ -44,11 +49,19 @@ impl State {
             let wasm_bytes = fs::read(&lang_cfg.parser)?;
             let lang = wasm_store.load_language(name, &wasm_bytes)?;
             let query = Query::new(&lang, &lang_cfg.query)?;
+
+            let capture_names = query.capture_names();
+            if !capture_names.contains(&COMMENT_CAPTURE) || !capture_names.contains(&ITEM_CAPTURE) {
+                return Err(Error::InvalidQuery);
+            }
+
             langs.insert(name.clone(), LangState {
-                name: name.clone(),
-                exts: lang_cfg.exts.clone(),
-                lang,
-                query,
+                inner: Arc::new(LangStateInner {
+                    name: name.clone(),
+                    exts: lang_cfg.exts.clone(),
+                    lang,
+                    query,
+                }),
             });
         }
 
