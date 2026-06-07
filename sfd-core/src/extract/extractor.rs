@@ -1,8 +1,10 @@
 use tree_sitter::{Parser, QueryCursor, StreamingIterator};
 
 use crate::{
-    error::Error,
-    extract::state::{LangState, State},
+    extract::{
+        error::Error,
+        state::{LangState, State},
+    },
     models::{comment::Comment, ident::Ident, item::Item, source::Source, span::Span},
 };
 

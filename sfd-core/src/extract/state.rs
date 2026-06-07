@@ -7,8 +7,10 @@ use wasmtime::Engine;
 
 use crate::{
     config::Config,
-    error::Error,
-    extract::extractor::{COMMENT_CAPTURE, ITEM_CAPTURE},
+    extract::{
+        error::Error,
+        extractor::{COMMENT_CAPTURE, ITEM_CAPTURE},
+    },
 };
 
 #[derive(Debug)]
