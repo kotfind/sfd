@@ -1,15 +1,11 @@
-use crate::extract::span::Span;
-
 #[derive(Debug, Clone)]
-pub struct CommentBlock {
-    pub span: Span,
+pub struct Comment {
     content: String,
 }
 
-impl CommentBlock {
-    pub fn new(span: Span, content: impl Into<String>) -> Self {
+impl Comment {
+    pub fn new(content: impl Into<String>) -> Self {
         Self {
-            span,
             content: content.into(),
         }
     }

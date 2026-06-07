@@ -22,25 +22,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn load() -> Result<Self, ConfigError> {
-        let user_paths = CONFIG_NAMES.iter().map(|name| DIRS.config_dir().join(name));
-
-        let cwd = std::env::current_dir().expect("failed to get CWD");
-        let proj_paths = cwd
-            .ancestors()
-            .flat_map(|dir| CONFIG_NAMES.iter().map(|name| dir.join(name)));
-
-        let mut loader = ConfigLoader::new();
-        for path in user_paths.chain(proj_paths) {
-            loader.file_optional(path)?;
-        }
-
-        let config = loader.load()?.config;
-
-        Ok(config)
-    }
-
-    fn get_files() -> Result<Self, ConfigError> {
+    fn load() -> Result<Self, ConfigError> {
         let cwd = std::env::current_dir().expect("failed to get CWD");
 
         let user_cfg = get_first_existing([DIRS.config_dir()], CONFIG_NAMES);

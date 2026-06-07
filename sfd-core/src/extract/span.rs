@@ -3,7 +3,9 @@ use crate::extract::source::Source;
 #[derive(Debug, Clone)]
 pub struct Span {
     pub src: Source,
+
     pub line: usize,
+
     pub col: usize,
 }
 

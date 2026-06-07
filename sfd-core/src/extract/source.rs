@@ -5,6 +5,7 @@ use crate::extract::error::Error;
 #[derive(Debug, Clone)]
 struct SourceInner {
     path: PathBuf,
+
     lines: Vec<String>,
 }
 
