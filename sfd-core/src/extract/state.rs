@@ -2,26 +2,11 @@ use std::collections::HashMap;
 use std::fs;
 
 use derive_more::Debug;
-use thiserror::Error;
-use tree_sitter::{Language, LanguageError, Query, QueryError, WasmError, WasmStore};
+use tree_sitter::{Language, Query, WasmStore};
 use wasmtime::Engine;
 
 use crate::config::Config;
-
-#[derive(Debug, Error)]
-pub enum StateError {
-    #[error("failed to read wasm file: {0}")]
-    Io(#[from] std::io::Error),
-
-    #[error("failed to create wasm store: {0}")]
-    Wasm(#[from] WasmError),
-
-    #[error("failed to load language: {0}")]
-    Language(#[from] LanguageError),
-
-    #[error("failed to compile query: {0}")]
-    Query(#[from] QueryError),
-}
+use crate::extract::error::Error;
 
 #[derive(Debug)]
 pub struct LangState {
@@ -46,7 +31,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(config: &Config) -> Result<Self, StateError> {
+    pub fn new(config: &Config) -> Result<Self, Error> {
         let wasm_engine = Engine::default();
         let mut wasm_store = WasmStore::new(&wasm_engine)?;
         let mut langs = HashMap::new();

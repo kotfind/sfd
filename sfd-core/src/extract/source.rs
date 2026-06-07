@@ -17,10 +17,7 @@ pub struct Source {
 impl Source {
     pub async fn new(path: impl Into<PathBuf>) -> Result<Self, Error> {
         let path: PathBuf = path.into();
-        let source = tokio::fs::read_to_string(&path).await.map_err(|e| Error::Io {
-            path: path.display().to_string(),
-            source: e,
-        })?;
+        let source = tokio::fs::read_to_string(&path).await?;
         let lines = source.lines().map(String::from).collect();
         Ok(Self {
             inner: Arc::new(SourceInner { path, lines }),
