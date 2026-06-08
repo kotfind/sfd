@@ -8,8 +8,32 @@ pub struct Config {
     #[setting(nested)]
     pub scan: ScanConfig,
 
+    #[setting(nested)]
+    pub vect: VectConfig,
+
     #[setting(skip)]
     pub root_path: Option<PathBuf>,
+}
+
+#[derive(Debug, schematic::Config)]
+pub struct VectConfig {
+    #[setting(default = 256)]
+    pub max_len: usize,
+
+    #[setting(nested)]
+    pub ollama: OllamaConfig,
+}
+
+#[derive(Debug, schematic::Config)]
+pub struct OllamaConfig {
+    #[setting(default = "http://localhost:11434")]
+    pub url: String,
+
+    #[setting(default = "nomic-embed-text")]
+    pub model: String,
+
+    #[setting(default = 30)]
+    pub timeout: u64,
 }
 
 #[derive(Debug, schematic::Config)]

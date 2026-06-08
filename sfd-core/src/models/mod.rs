@@ -1,4 +1,5 @@
 pub mod comment;
+pub mod embedding;
 pub mod ident;
 pub mod item;
 pub mod project_sources;

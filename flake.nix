@@ -39,6 +39,8 @@
             cargo-autoinherit
 
             cmake
+            openssl
+            pkg-config
           ]);
       };
     in {

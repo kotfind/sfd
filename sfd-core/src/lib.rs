@@ -4,3 +4,4 @@ pub mod extract;
 pub mod models;
 pub mod scan;
 mod util;
+pub mod vect;
