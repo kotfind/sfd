@@ -1,0 +1,18 @@
+use sha2::{Digest, Sha256};
+use sqlx::sqlite::SqlitePool;
+
+use super::error::Error;
+
+const SCHEMA: &str = include_str!("schema.sql");
+
+pub async fn init(pool: &SqlitePool) -> Result<(), Error> {
+    sqlx::query(SCHEMA).execute(pool).await?;
+
+    let hash = hex::encode(Sha256::digest(SCHEMA));
+    sqlx::query("INSERT INTO setting (key, value) VALUES ('schema_hash', ?)")
+        .bind(&hash)
+        .execute(pool)
+        .await?;
+
+    Ok(())
+}

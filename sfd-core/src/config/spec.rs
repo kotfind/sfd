@@ -1,4 +1,7 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
 #[derive(Debug, schematic::Config)]
 pub struct Config {
@@ -13,6 +16,14 @@ pub struct Config {
 
     #[setting(skip)]
     pub root_path: Option<PathBuf>,
+}
+
+impl Config {
+    pub fn root(&self) -> &Path {
+        self.root_path
+            .as_deref()
+            .expect("root path is always specified")
+    }
 }
 
 #[derive(Debug, schematic::Config)]
