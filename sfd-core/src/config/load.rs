@@ -1,7 +1,4 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use schematic::ConfigLoader;
 
@@ -40,9 +37,8 @@ fn get_first_existing(
     for dir in dirs.into_iter() {
         for file in files.clone().into_iter() {
             let path = dir.as_ref().join(file);
-            let path = fs::canonicalize(path).expect("failed to canonicalize path");
 
-            if fs::exists(&path).expect("failed to check path's existence") {
+            if path.exists() {
                 return Some(path);
             }
         }
