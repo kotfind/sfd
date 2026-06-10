@@ -14,17 +14,20 @@ impl Config {
         let cwd = std::env::current_dir().expect("failed to get CWD");
 
         let config_dir = DIRS.config_dir().to_path_buf();
-        let user_cfg = get_first_existing([&config_dir], CONFIG_NAMES)
-            .ok_or_else(|| Error::UserConfigNotFound(config_dir.clone()))?;
-        let proj_cfg = get_first_existing(cwd.ancestors(), CONFIG_NAMES);
+        let user_cfg = get_first_existing([&config_dir], CONFIG_NAMES);
+        let proj_cfg = get_first_existing(cwd.ancestors(), CONFIG_NAMES)
+            .ok_or(Error::ProjConfigNotFound)?;
 
         let mut loader = ConfigLoader::new();
-        loader.file(&user_cfg)?;
-        if let Some(ref proj_cfg) = proj_cfg {
-            loader.file_optional(proj_cfg)?;
+        if let Some(ref user_cfg) = user_cfg {
+            loader.file(user_cfg)?;
         }
+        loader.file(&proj_cfg)?;
         let mut cfg: Config = loader.load()?.config;
-        cfg.root_path = Some(config_dir);
+        cfg.root_path = proj_cfg
+            .parent()
+            .map(Path::to_path_buf)
+            .or(Some(cwd));
 
         Ok(cfg)
     }

@@ -27,6 +27,7 @@ impl Config {
 }
 
 #[derive(Debug, schematic::Config)]
+#[config(rename_all = "snake_case")]
 pub struct VectConfig {
     #[setting(default = 256)]
     pub max_len: usize,
@@ -36,6 +37,7 @@ pub struct VectConfig {
 }
 
 #[derive(Debug, schematic::Config)]
+#[config(rename_all = "snake_case")]
 pub struct OllamaConfig {
     #[setting(default = "http://localhost:11434")]
     pub url: String,
@@ -48,17 +50,22 @@ pub struct OllamaConfig {
 }
 
 #[derive(Debug, schematic::Config)]
+#[config(rename_all = "snake_case")]
 pub struct ScanConfig {
     pub exclude: Vec<String>,
 
+    #[setting(default = true)]
     pub ignore_git: bool,
 
+    #[setting(default = true)]
     pub ignore_ignore: bool,
 
+    #[setting(default = true)]
     pub ignore_hidden: bool,
 }
 
 #[derive(Debug, schematic::Config)]
+#[config(rename_all = "snake_case")]
 pub struct LangConfig {
     #[setting(validate = "crate::util::validate_absolute")]
     pub parser: PathBuf,

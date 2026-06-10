@@ -1,7 +1,6 @@
 use std::{collections::HashMap, fs, sync::Arc};
 
 use derive_more::Debug;
-use tokio::sync::Mutex;
 use tree_sitter::{Language, Query, WasmStore};
 use wasmtime::Engine;
 
@@ -24,6 +23,16 @@ pub(crate) struct LangStateInner {
     pub query: Query,
 }
 
+impl LangState {
+    pub fn lang(&self) -> &Language {
+        &self.inner.lang
+    }
+
+    pub fn query(&self) -> &Query {
+        &self.inner.query
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct LangState {
     pub(crate) inner: Arc<LangStateInner>,
@@ -42,13 +51,12 @@ pub(crate) struct StateInner {
 
 #[derive(Debug, Clone)]
 pub struct State {
-    pub(crate) inner: Arc<Mutex<StateInner>>,
+    pub(crate) inner: Arc<StateInner>,
 }
 
 impl State {
     pub fn get_lang(&self, name: &str) -> LangState {
-        let inner = self.inner.blocking_lock();
-        inner
+        self.inner
             .langs
             .get(name)
             .expect("language not found in state")
@@ -84,11 +92,11 @@ impl State {
         }
 
         Ok(Self {
-            inner: Arc::new(Mutex::new(StateInner {
+            inner: Arc::new(StateInner {
                 langs,
                 wasm_engine,
                 wasm_store,
-            })),
+            }),
         })
     }
 }

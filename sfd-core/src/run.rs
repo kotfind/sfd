@@ -16,7 +16,16 @@ pub async fn run(config: &Config) -> Result<(), Error> {
     let project = scanner::scan(config).await?;
 
     for source in project.sources {
-        let source_items = extract::extract(source, &state)?;
+        let source_items = match extract::extract(source, &state) {
+            Ok(items) => items,
+            Err(e) => {
+                if is_file_error(&e) {
+                    eprintln!("extraction error: {e}");
+                    continue;
+                }
+                return Err(Error::Extract(e));
+            }
+        };
 
         for item in source_items.items {
             let embedding = vect::embed(item.comment.content(), config, &client).await?;
@@ -26,4 +35,11 @@ pub async fn run(config: &Config) -> Result<(), Error> {
     }
 
     Ok(())
+}
+
+fn is_file_error(e: &extract::Error) -> bool {
+    matches!(
+        e,
+        extract::Error::NoLang | extract::Error::SyntaxError | extract::Error::NonUtf8
+    )
 }

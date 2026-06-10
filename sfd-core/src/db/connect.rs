@@ -1,6 +1,6 @@
-use std::path::Path;
+use std::{path::Path, str::FromStr};
 
-use sqlx::sqlite::SqlitePool;
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePool};
 
 use crate::config::spec::Config;
 
@@ -15,7 +15,8 @@ pub async fn connect(config: &Config) -> Result<SqlitePool, Error> {
         .to_owned();
     let is_new = !Path::new(&db_path).exists();
 
-    let pool = SqlitePool::connect(&db_path).await?;
+    let options = SqliteConnectOptions::from_str(&db_path)?.create_if_missing(true);
+    let pool = SqlitePool::connect_with(options).await?;
 
     if is_new {
         init::init(&pool).await?;

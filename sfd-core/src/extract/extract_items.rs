@@ -20,12 +20,12 @@ pub fn extract(src: Source, state: &State) -> Result<SourceItems, Error> {
 
     let mut cursor = QueryCursor::new();
     let mut matches = cursor.matches(
-        &lang.inner.query,
+        lang.query(),
         tree.root_node(),
         src.content().as_bytes(),
     );
 
-    let capture_names = lang.inner.query.capture_names();
+    let capture_names = lang.query().capture_names();
 
     let mut items = Vec::new();
     while let Some(m) = matches.next() {
@@ -37,7 +37,7 @@ pub fn extract(src: Source, state: &State) -> Result<SourceItems, Error> {
 
 fn parse(src: Source, lang: &LangState) -> Result<Tree, Error> {
     let mut parser = Parser::new();
-    parser.set_language(&lang.inner.lang)?;
+    parser.set_language(lang.lang())?;
 
     let tree = parser
         .parse(src.content(), None)

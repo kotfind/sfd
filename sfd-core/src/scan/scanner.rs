@@ -22,6 +22,10 @@ pub async fn scan(config: &Config) -> Result<ProjectSources, Error> {
             continue;
         };
 
+        if !entry.file_type().is_some_and(|t| t.is_file()) {
+            continue;
+        }
+
         let rel = util::to_rel(entry.path(), root);
         let src = Source::new(rel, config).await?;
 
