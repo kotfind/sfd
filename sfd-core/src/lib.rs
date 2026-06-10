@@ -8,3 +8,5 @@ pub mod run;
 pub mod scan;
 mod util;
 pub mod vect;
+
+pub use run::run;
