@@ -13,10 +13,10 @@ pub async fn run(config: &Config) -> Result<(), Error> {
         .build()?;
 
     let state = State::new(config)?;
-    let project = scanner::scan_project(config).await?;
+    let project = scanner::scan(config).await?;
 
     for source in project.sources {
-        let source_items = extract::extract_items(source, &state)?;
+        let source_items = extract::extract(source, &state)?;
 
         for item in source_items.items {
             let embedding = vect::embed(item.comment.content(), config, &client).await?;

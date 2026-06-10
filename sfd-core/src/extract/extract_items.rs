@@ -14,7 +14,7 @@ use crate::{
 pub const COMMENT_CAPTURE: &str = "comment";
 pub const ITEM_CAPTURE: &str = "item";
 
-pub fn extract_items(src: Source, state: &State) -> Result<SourceItems, Error> {
+pub fn extract(src: Source, state: &State) -> Result<SourceItems, Error> {
     let lang = state.get_lang(src.lang().ok_or(Error::NoLang)?);
     let tree = parse(src.clone(), &lang)?;
 

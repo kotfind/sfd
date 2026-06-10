@@ -10,7 +10,7 @@ use crate::{
     util,
 };
 
-pub async fn scan_project(config: &Config) -> Result<ProjectSources, Error> {
+pub async fn scan(config: &Config) -> Result<ProjectSources, Error> {
     let root = get_root(config);
 
     let entries = make_entries_iter(config)?;
