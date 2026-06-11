@@ -1,3 +1,5 @@
+use std::ops::RangeInclusive;
+
 use thiserror::Error;
 use tree_sitter::{LanguageError, QueryError, WasmError};
 
@@ -22,11 +24,12 @@ pub enum Error {
     )]
     InvalidQuery,
 
-    #[error("match has multiple @{0} captures, expected exactly one")]
-    MultipleCaptures(String),
-
-    #[error("match is missing @{0} capture")]
-    MissingCapture(String),
+    #[error("unexpected number of @{name} captures (expected {expected:?}, got {actual})")]
+    UnexpectedCaptureCount {
+        name: String,
+        expected: RangeInclusive<usize>,
+        actual: usize,
+    },
 
     #[error("no language detected for the source file")]
     NoLang,

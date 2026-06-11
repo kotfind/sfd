@@ -1,4 +1,8 @@
-use tree_sitter::{Node, Parser, QueryCapture, QueryCursor, QueryMatch, StreamingIterator, Tree};
+use std::ops::RangeInclusive;
+
+use tree_sitter::{
+    Node, Parser, QueryCapture, QueryCursor, QueryMatch, StreamingIterator, Tree, WasmStore,
+};
 
 use crate::{
     extract::{
@@ -16,14 +20,10 @@ pub const ITEM_CAPTURE: &str = "item";
 
 pub fn extract(src: Source, state: &State) -> Result<SourceItems, Error> {
     let lang = state.get_lang(src.lang().ok_or(Error::NoLang)?);
-    let tree = parse(src.clone(), &lang)?;
+    let tree = parse(src.clone(), &lang, state)?;
 
     let mut cursor = QueryCursor::new();
-    let mut matches = cursor.matches(
-        lang.query(),
-        tree.root_node(),
-        src.content().as_bytes(),
-    );
+    let mut matches = cursor.matches(lang.query(), tree.root_node(), src.content().as_bytes());
 
     let capture_names = lang.query().capture_names();
 
@@ -35,8 +35,10 @@ pub fn extract(src: Source, state: &State) -> Result<SourceItems, Error> {
     Ok(SourceItems::new(src, items))
 }
 
-fn parse(src: Source, lang: &LangState) -> Result<Tree, Error> {
+fn parse(src: Source, lang: &LangState, state: &State) -> Result<Tree, Error> {
     let mut parser = Parser::new();
+    let wasm_store = WasmStore::new(&state.inner.wasm_engine)?;
+    parser.set_wasm_store(wasm_store)?;
     parser.set_language(lang.lang())?;
 
     let tree = parser
@@ -51,11 +53,12 @@ fn parse(src: Source, lang: &LangState) -> Result<Tree, Error> {
 }
 
 fn match_to_item(m: &QueryMatch, capture_names: &[&str], src: Source) -> Result<Item, Error> {
-    let comment_node = get_single_capture_node(COMMENT_CAPTURE, m.captures, capture_names)?;
-    let item_node = get_single_capture_node(ITEM_CAPTURE, m.captures, capture_names)?;
+    let comment_nodes =
+        get_named_captures(COMMENT_CAPTURE, 1..=usize::MAX, m.captures, capture_names)?;
+    let comment = Comment::new(concat_node_text(&comment_nodes, src.clone())?);
 
-    let comment = Comment::new(get_node_text(&comment_node, src.clone())?);
-    let ident = Ident::new(get_node_text(&item_node, src.clone())?);
+    let item_node = &get_named_captures(ITEM_CAPTURE, 1..=1, m.captures, capture_names)?[0];
+    let ident = Ident::new(get_node_text(item_node, src.clone())?);
 
     let offset = item_node.start_byte();
     let pos = item_node.start_position();
@@ -64,27 +67,40 @@ fn match_to_item(m: &QueryMatch, capture_names: &[&str], src: Source) -> Result<
     Ok(Item::new(comment, ident, span))
 }
 
-fn get_single_capture_node<'tree>(
+fn get_named_captures<'tree>(
     name: &str,
+    range: RangeInclusive<usize>,
     captures: &[QueryCapture<'tree>],
     capture_names: &[&str],
-) -> Result<Node<'tree>, Error> {
-    let candidates: Vec<_> = captures
+) -> Result<Vec<Node<'tree>>, Error> {
+    let nodes: Vec<Node<'tree>> = captures
         .iter()
         .filter(|c| capture_names[c.index as usize] == name)
+        .map(|c| c.node)
         .collect();
 
-    let capture = match candidates.len() {
-        0 => return Err(Error::MissingCapture(name.to_owned())),
-        1 => candidates[0],
-        2.. => return Err(Error::MultipleCaptures(name.to_owned())),
-    };
+    let count = nodes.len();
+    if !range.contains(&count) {
+        return Err(Error::UnexpectedCaptureCount {
+            name: name.to_owned(),
+            expected: range,
+            actual: count,
+        });
+    }
 
-    Ok(capture.node)
+    Ok(nodes)
 }
 
 fn get_node_text<'tree>(node: &Node<'tree>, src: Source) -> Result<String, Error> {
     node.utf8_text(src.content().as_bytes())
         .map_err(|_| Error::NonUtf8)
         .map(|s| s.to_owned())
+}
+
+fn concat_node_text<'tree>(nodes: &[Node<'tree>], src: Source) -> Result<String, Error> {
+    nodes
+        .iter()
+        .map(|node| get_node_text(node, src.clone()))
+        .collect::<Result<Vec<_>, _>>()
+        .map(|texts| texts.join("\n"))
 }

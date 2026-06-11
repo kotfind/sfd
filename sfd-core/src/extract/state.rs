@@ -43,10 +43,7 @@ pub(crate) struct StateInner {
     pub(crate) langs: HashMap<String, LangState>,
 
     #[debug(skip)]
-    wasm_engine: Engine,
-
-    #[debug(skip)]
-    wasm_store: WasmStore,
+    pub(crate) wasm_engine: Engine,
 }
 
 #[derive(Debug, Clone)]
@@ -92,11 +89,7 @@ impl State {
         }
 
         Ok(Self {
-            inner: Arc::new(StateInner {
-                langs,
-                wasm_engine,
-                wasm_store,
-            }),
+            inner: Arc::new(StateInner { langs, wasm_engine }),
         })
     }
 }
