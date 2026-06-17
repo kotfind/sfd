@@ -1,5 +1,6 @@
 use crate::models::{item::Item, source::Source};
 
+/// A [`Source`] with [`Item`]s extracted from it.
 #[derive(Debug, Clone)]
 pub struct SourceItems {
     pub src: Source,

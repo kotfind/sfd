@@ -10,6 +10,7 @@ use crate::{
     util,
 };
 
+/// Scans the project.
 pub async fn scan(config: &Config) -> Result<ProjectSources, Error> {
     let root = get_root(config);
 

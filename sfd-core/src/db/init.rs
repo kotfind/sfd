@@ -5,6 +5,7 @@ use super::error::Error;
 
 const SCHEMA: &str = include_str!("schema.sql");
 
+/// Inits db schema.
 pub async fn init(pool: &SqlitePool) -> Result<(), Error> {
     sqlx::query(SCHEMA).execute(pool).await?;
 

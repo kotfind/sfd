@@ -2,6 +2,7 @@ use thiserror::Error;
 
 use crate::extract;
 
+/// Scanning error.
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("invalid glob pattern: {0}")]

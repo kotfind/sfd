@@ -1,5 +1,6 @@
 use thiserror::Error;
 
+/// Config loading error.
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("failed to load config: {0}")]

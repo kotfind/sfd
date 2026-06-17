@@ -6,6 +6,7 @@ use crate::config::spec::Config;
 
 use super::{error::Error, init};
 
+/// Connects to the db.
 pub async fn connect(config: &Config) -> Result<SqlitePool, Error> {
     let db_path = config
         .root()

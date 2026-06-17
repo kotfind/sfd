@@ -18,6 +18,7 @@ use crate::{
 pub const COMMENT_CAPTURE: &str = "comment";
 pub const ITEM_CAPTURE: &str = "item";
 
+/// Extracts all the [Item]s from a [Source].
 pub fn extract(src: Source, state: &State) -> Result<SourceItems, Error> {
     let lang = state.get_lang(src.lang().ok_or(Error::NoLang)?);
     let tree = parse(src.clone(), &lang, state)?;
@@ -35,6 +36,7 @@ pub fn extract(src: Source, state: &State) -> Result<SourceItems, Error> {
     Ok(SourceItems::new(src, items))
 }
 
+/// Parses a [Source].
 fn parse(src: Source, lang: &LangState, state: &State) -> Result<Tree, Error> {
     let mut parser = Parser::new();
     let wasm_store = WasmStore::new(&state.inner.wasm_engine)?;
@@ -52,6 +54,7 @@ fn parse(src: Source, lang: &LangState, state: &State) -> Result<Tree, Error> {
     Ok(tree)
 }
 
+/// Converts a match to an [Item].
 fn match_to_item(m: &QueryMatch, capture_names: &[&str], src: Source) -> Result<Item, Error> {
     let comment_nodes =
         get_named_captures(COMMENT_CAPTURE, 1..=usize::MAX, m.captures, capture_names)?;
@@ -67,6 +70,7 @@ fn match_to_item(m: &QueryMatch, capture_names: &[&str], src: Source) -> Result<
     Ok(Item::new(comment, ident, span))
 }
 
+/// Gets all the captures with a `name` and asserts their amount is in a `range`.
 fn get_named_captures<'tree>(
     name: &str,
     range: RangeInclusive<usize>,
@@ -91,12 +95,14 @@ fn get_named_captures<'tree>(
     Ok(nodes)
 }
 
+/// Gets [Node]'s text.
 fn get_node_text<'tree>(node: &Node<'tree>, src: Source) -> Result<String, Error> {
     node.utf8_text(src.content().as_bytes())
         .map_err(|_| Error::NonUtf8)
         .map(|s| s.to_owned())
 }
 
+/// Gets and concatenates text from all the given [Node]s.
 fn concat_node_text<'tree>(nodes: &[Node<'tree>], src: Source) -> Result<String, Error> {
     nodes
         .iter()

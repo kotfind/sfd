@@ -5,6 +5,7 @@ use crate::{
     config::spec::Config, db, error::Error, extract, extract::state::State, scan::scanner, vect,
 };
 
+/// Runs the whole pipeline.
 pub async fn run(config: &Config) -> Result<(), Error> {
     let pool = db::connect(config).await?;
 
@@ -37,6 +38,7 @@ pub async fn run(config: &Config) -> Result<(), Error> {
     Ok(())
 }
 
+/// Is an error local to a single file?
 fn is_file_error(e: &extract::Error) -> bool {
     matches!(
         e,

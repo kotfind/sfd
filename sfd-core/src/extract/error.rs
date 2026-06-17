@@ -5,6 +5,7 @@ use tree_sitter::{LanguageError, QueryError, WasmError};
 
 use crate::extract::extract_items::{COMMENT_CAPTURE, ITEM_CAPTURE};
 
+/// Extraction error.
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("failed to perform io operation: {0}")]

@@ -1,5 +1,6 @@
 use crate::models::source::Source;
 
+/// All the project's [`Source`]s.
 #[derive(Debug, Clone)]
 pub struct ProjectSources {
     pub sources: Vec<Source>,

@@ -1,6 +1,7 @@
 use clap::Parser;
 use sfd::{config::Config, run};
 
+/// CLI arguments.
 #[derive(Parser)]
 struct Args {}
 

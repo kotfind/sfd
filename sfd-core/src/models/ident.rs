@@ -1,3 +1,6 @@
+/// An identifier from source.
+///
+/// E.g. name of a function.
 #[derive(Debug, Clone)]
 pub struct Ident {
     name: String,

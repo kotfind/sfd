@@ -17,6 +17,9 @@ struct EmbeddingResponse {
     embedding: Vec<f32>,
 }
 
+/// Calls Ollama embedding model.
+///
+/// Use on already-prepared text (see [super::prepare::prepare]).
 pub async fn embed_prepared(
     prompt: &str,
     config: &Config,

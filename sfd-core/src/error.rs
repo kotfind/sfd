@@ -1,5 +1,6 @@
 use crate::{db, extract, scan, vect};
 
+/// Top-level error.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("database error: {0}")]

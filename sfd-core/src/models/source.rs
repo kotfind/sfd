@@ -7,6 +7,9 @@ use crate::{config::spec::Config, extract::error::Error};
 
 #[derive(Debug, Clone)]
 struct SourceInner {
+    /// Source's path.
+    ///
+    /// This should be a **relative** path (relative to project dir).
     path: PathBuf,
 
     lang: Option<String>,
@@ -14,6 +17,7 @@ struct SourceInner {
     content: String,
 }
 
+/// A source file.
 #[derive(Debug, Clone)]
 pub struct Source {
     inner: Arc<SourceInner>,

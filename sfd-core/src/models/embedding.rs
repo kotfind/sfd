@@ -1,3 +1,4 @@
+/// An embedding vector.
 #[derive(Debug, Clone)]
 pub struct Embedding {
     data: Vec<f32>,

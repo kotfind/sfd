@@ -1,3 +1,4 @@
+/// A comment from source.
 #[derive(Debug, Clone)]
 pub struct Comment {
     content: String,

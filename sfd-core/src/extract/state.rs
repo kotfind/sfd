@@ -33,6 +33,7 @@ impl LangState {
     }
 }
 
+/// Language state.
 #[derive(Clone, Debug)]
 pub struct LangState {
     pub(crate) inner: Arc<LangStateInner>,
@@ -46,6 +47,7 @@ pub(crate) struct StateInner {
     pub(crate) wasm_engine: Engine,
 }
 
+/// Extraction state.
 #[derive(Debug, Clone)]
 pub struct State {
     pub(crate) inner: Arc<StateInner>,

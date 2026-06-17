@@ -10,6 +10,7 @@ use super::spec::Config;
 const CONFIG_NAMES: &[&str] = &["sfd.yaml", "sfd.yml"];
 
 impl Config {
+    /// Loads and merges user and project configs.
     pub fn load() -> Result<Self, Error> {
         let cwd = std::env::current_dir().expect("failed to get CWD");
 
@@ -30,6 +31,16 @@ impl Config {
     }
 }
 
+/// Return the first exising file from any of the dirs.
+///
+/// Checks files in the following order:
+///
+/// - `dir1/file1`
+/// - `dir1/file2`
+/// - ...
+/// - `dir2/file1`
+/// - `dir2/file2`
+/// - ...
 fn get_first_existing(
     dirs: impl IntoIterator<Item = impl AsRef<Path>>,
     files: impl IntoIterator<Item = impl AsRef<Path>> + Clone,
