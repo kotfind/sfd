@@ -10,11 +10,12 @@ use crate::{
         error::Error,
         extract_items::{COMMENT_CAPTURE, ITEM_CAPTURE},
     },
+    models::lang_name::LangName,
 };
 
 #[derive(Debug)]
 pub(crate) struct LangStateInner {
-    pub name: String,
+    pub name: LangName,
 
     pub exts: Vec<String>,
 
@@ -41,7 +42,7 @@ pub struct LangState {
 
 #[derive(Debug)]
 pub(crate) struct StateInner {
-    pub(crate) langs: HashMap<String, LangState>,
+    pub(crate) langs: HashMap<LangName, LangState>,
 
     #[debug(skip)]
     pub(crate) wasm_engine: Engine,
@@ -54,7 +55,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn get_lang(&self, name: &str) -> LangState {
+    pub fn get_lang(&self, name: &LangName) -> LangState {
         self.inner
             .langs
             .get(name)
@@ -69,7 +70,7 @@ impl State {
 
         for (name, lang_cfg) in &config.langs {
             let wasm_bytes = fs::read(&lang_cfg.parser)?;
-            let lang = wasm_store.load_language(name, &wasm_bytes)?;
+            let lang = wasm_store.load_language(name.as_str(), &wasm_bytes)?;
             let query = Query::new(&lang, &lang_cfg.query)?;
 
             let capture_names = query.capture_names();

@@ -2,6 +2,7 @@ pub mod comment;
 pub mod embedding;
 pub mod ident;
 pub mod item;
+pub mod lang_name;
 pub mod project_sources;
 pub mod source;
 pub mod source_items;

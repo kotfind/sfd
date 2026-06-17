@@ -3,7 +3,7 @@ use std::{
     sync::Arc,
 };
 
-use crate::{config::spec::Config, extract::error::Error};
+use crate::{config::spec::Config, extract::error::Error, models::lang_name::LangName};
 
 #[derive(Debug, Clone)]
 struct SourceInner {
@@ -12,7 +12,7 @@ struct SourceInner {
     /// This should be a **relative** path (relative to project dir).
     path: PathBuf,
 
-    lang: Option<String>,
+    lang: Option<LangName>,
 
     content: String,
 }
@@ -41,8 +41,8 @@ impl Source {
         &self.inner.path
     }
 
-    pub fn lang(&self) -> Option<&str> {
-        self.inner.lang.as_deref()
+    pub fn lang(&self) -> Option<&LangName> {
+        self.inner.lang.as_ref()
     }
 
     pub fn content(&self) -> &str {
@@ -50,7 +50,7 @@ impl Source {
     }
 }
 
-fn guess_lang(path: &Path, config: &Config) -> Option<String> {
+fn guess_lang(path: &Path, config: &Config) -> Option<LangName> {
     let ext = path.extension()?.to_str()?;
     config.langs.iter().find_map(|(name, lang_cfg)| {
         lang_cfg

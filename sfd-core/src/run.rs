@@ -10,7 +10,7 @@ pub async fn run(config: &Config) -> Result<(), Error> {
     let pool = db::connect(config).await?;
 
     let client = Client::builder()
-        .timeout(Duration::from_secs(config.vect.ollama.timeout))
+        .timeout(Duration::from_secs_f64(config.vect.ollama.timeout))
         .build()?;
 
     let state = State::new(config)?;
@@ -20,7 +20,7 @@ pub async fn run(config: &Config) -> Result<(), Error> {
         let source_items = match extract::extract(source, &state) {
             Ok(items) => items,
             Err(e) => {
-                if is_file_error(&e) {
+                if e.is_file_local() {
                     eprintln!("extraction error: {e}");
                     continue;
                 }
@@ -36,12 +36,4 @@ pub async fn run(config: &Config) -> Result<(), Error> {
     }
 
     Ok(())
-}
-
-/// Is an error local to a single file?
-fn is_file_error(e: &extract::Error) -> bool {
-    matches!(
-        e,
-        extract::Error::NoLang | extract::Error::SyntaxError | extract::Error::NonUtf8
-    )
 }

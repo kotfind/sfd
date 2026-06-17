@@ -3,11 +3,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::models::lang_name::LangName;
+
 /// App config.
 #[derive(Debug, schematic::Config)]
 pub struct Config {
     #[setting(nested)]
-    pub langs: HashMap<String, LangConfig>,
+    pub langs: HashMap<LangName, LangConfig>,
 
     #[setting(nested)]
     pub scan: ScanConfig,
@@ -54,9 +56,9 @@ pub struct OllamaConfig {
     #[setting(default = "nomic-embed-text")]
     pub model: String,
 
-    /// Timeout for a single query.
-    #[setting(default = 30)]
-    pub timeout: u64,
+    /// Timeout for a single query, in seconds.
+    #[setting(default = 30.0)]
+    pub timeout: f64,
 }
 
 /// Scanning config.

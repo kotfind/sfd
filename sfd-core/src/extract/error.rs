@@ -1,4 +1,4 @@
-use std::ops::RangeInclusive;
+use std::{ops::RangeInclusive, path::PathBuf};
 
 use thiserror::Error;
 use tree_sitter::{LanguageError, QueryError, WasmError};
@@ -32,12 +32,22 @@ pub enum Error {
         actual: usize,
     },
 
-    #[error("no language detected for the source file")]
-    NoLang,
+    #[error("no language detected for `{path}`")]
+    NoLang { path: PathBuf },
 
     #[error("source file contains syntax errors")]
     SyntaxError,
 
     #[error("tree-sitter returned a non-utf8 slice")]
     NonUtf8,
+}
+
+impl Error {
+    /// Was this error caused by a single file's contents?
+    pub fn is_file_local(&self) -> bool {
+        matches!(
+            self,
+            Error::NoLang { .. } | Error::SyntaxError | Error::NonUtf8
+        )
+    }
 }

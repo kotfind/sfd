@@ -20,7 +20,9 @@ pub const ITEM_CAPTURE: &str = "item";
 
 /// Extracts all the [Item]s from a [Source].
 pub fn extract(src: Source, state: &State) -> Result<SourceItems, Error> {
-    let lang = state.get_lang(src.lang().ok_or(Error::NoLang)?);
+    let lang = state.get_lang(src.lang().ok_or_else(|| Error::NoLang {
+        path: src.path().to_path_buf(),
+    })?);
     let tree = parse(src.clone(), &lang, state)?;
 
     let mut cursor = QueryCursor::new();
