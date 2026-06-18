@@ -1,5 +1,5 @@
 use clap::Parser;
-use sfd::{config::Config, run};
+use sfd::{Context, config::Config};
 
 /// CLI arguments.
 #[derive(Parser)]
@@ -10,7 +10,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let _args = Args::parse();
 
     let config = Config::load()?;
-    run(&config).await?;
+    let ctx = Context::new(&config).await?;
+    ctx.run().await?;
 
     Ok(())
 }

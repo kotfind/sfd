@@ -1,9 +1,10 @@
 use std::{
+    collections::HashMap,
     path::{Path, PathBuf},
     sync::Arc,
 };
 
-use crate::{config::spec::Config, extract::error::Error, models::lang_name::LangName};
+use crate::{extract::error::Error, models::lang_name::LangName};
 
 #[derive(Debug, Clone)]
 struct SourceInner {
@@ -24,10 +25,13 @@ pub struct Source {
 }
 
 impl Source {
-    pub async fn new(path: impl Into<PathBuf>, config: &Config) -> Result<Self, Error> {
+    pub async fn new(
+        path: impl Into<PathBuf>,
+        lang_exts: &HashMap<LangName, Vec<String>>,
+    ) -> Result<Self, Error> {
         let path: PathBuf = path.into();
         let source = tokio::fs::read_to_string(&path).await?;
-        let lang = guess_lang(&path, config);
+        let lang = guess_lang(&path, lang_exts);
         Ok(Self {
             inner: Arc::new(SourceInner {
                 path,
@@ -50,13 +54,9 @@ impl Source {
     }
 }
 
-fn guess_lang(path: &Path, config: &Config) -> Option<LangName> {
+fn guess_lang(path: &Path, lang_exts: &HashMap<LangName, Vec<String>>) -> Option<LangName> {
     let ext = path.extension()?.to_str()?;
-    config.langs.iter().find_map(|(name, lang_cfg)| {
-        lang_cfg
-            .exts
-            .iter()
-            .any(|e| e == ext)
-            .then_some(name.clone())
-    })
+    lang_exts
+        .iter()
+        .find_map(|(name, exts)| exts.iter().any(|e| e == ext).then_some(name.clone()))
 }
