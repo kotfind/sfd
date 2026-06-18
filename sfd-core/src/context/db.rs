@@ -2,17 +2,20 @@ use std::{path::Path, str::FromStr};
 
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool};
 
-use crate::{config::Config, error::DbError, logic::db::init};
+use crate::{config::Config, error::DbError, logic::db};
 
 /// Database context.
 #[derive(Debug, Clone)]
 pub struct DbContext {
     pool: SqlitePool,
+    _vec: db::VecExtLoadedProof,
 }
 
 impl DbContext {
     /// Creates a new db context, connecting to and initializing the db.
     pub async fn new(config: &Config) -> Result<Self, DbError> {
+        let vec = db::load();
+
         let db_path = config
             .root()
             .join("sfd.db")
@@ -25,10 +28,10 @@ impl DbContext {
         let pool = SqlitePool::connect_with(options).await?;
 
         if is_new {
-            init::init(&pool).await?;
+            db::init(&pool).await?;
         }
 
-        Ok(Self { pool })
+        Ok(Self { pool, _vec: vec })
     }
 
     pub fn pool(&self) -> &SqlitePool {

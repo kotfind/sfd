@@ -37,7 +37,6 @@
             cargo-expand
             cargo-machete
             cargo-autoinherit
-
             cmake
             openssl
             pkg-config

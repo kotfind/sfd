@@ -11,7 +11,8 @@ CREATE TABLE item (
     line INTEGER NOT NULL,
     col INTEGER NOT NULL,
     comment_content TEXT NOT NULL,
-    comment_vec_id INTEGER REFERENCES vec(rowid)
+    -- REFERENCES vec(rowid)
+    comment_vec_id INTEGER NOT NULL
 );
 
 CREATE VIRTUAL TABLE vec USING vec0(

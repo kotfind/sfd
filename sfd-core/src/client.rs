@@ -1,8 +1,10 @@
+use time::UtcDateTime;
+
 use crate::{
     config::Config,
     context::{DbContext, ExtractContext, ScanContext, VectContext},
     error::Error,
-    logic::{self, ollama},
+    logic::{self, db, ollama},
 };
 
 /// App client.
@@ -34,9 +36,9 @@ impl Client {
 
     /// Runs the full pipeline.
     pub async fn run(&self) -> Result<(), Error> {
-        ollama::ping::ping(self.vect.clone()).await?;
-        if !ollama::pull::has_model(self.vect.clone()).await? {
-            ollama::pull::pull_model(self.vect.clone()).await?;
+        ollama::ping(self.vect.clone()).await?;
+        if !ollama::has_model(self.vect.clone()).await? {
+            ollama::pull_model(self.vect.clone()).await?;
         }
 
         let project = logic::scan::scan(self.scan.clone()).await?;
@@ -53,12 +55,14 @@ impl Client {
                 }
             };
 
-            for item in source_items.items {
-                let _embedding =
-                    ollama::embed::embed(item.comment.content(), self.vect.clone()).await?;
-
-                // TODO: store item + embedding in db
+            let mut embeddings = Vec::new();
+            for item in &source_items.items {
+                let embedding = ollama::embed(item.comment.content(), self.vect.clone()).await?;
+                embeddings.push(embedding);
             }
+
+            let now = UtcDateTime::now();
+            db::insert_source(self.db.clone(), source_items, &embeddings, now).await?;
         }
 
         Ok(())
