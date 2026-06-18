@@ -34,8 +34,8 @@ impl Client {
         })
     }
 
-    /// Runs the full pipeline.
-    pub async fn run(&self) -> Result<(), Error> {
+    /// Indexes the project.
+    pub async fn index(&self) -> Result<(), Error> {
         let project = scan::scan(self.scan.clone()).await?;
 
         for source in project.sources {
