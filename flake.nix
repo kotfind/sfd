@@ -18,6 +18,7 @@
       pkgs = import nixpkgs {inherit system;};
 
       inherit (pkgs) mkShell;
+      inherit (pkgs.lib) getExe;
 
       rustToolchain = fenix.packages.${system}.stable.withComponents [
         "rustc"
@@ -28,11 +29,17 @@
         "rust-analyzer"
       ];
 
+      sqliteVec0 = "${pkgs.sqlite-vec}/lib/vec0.so";
+
+      sqlite = pkgs.writeShellScriptBin "sqlite3" ''
+        exec ${getExe pkgs.sqlite} -cmd ".load ${sqliteVec0}" "$@"
+      '';
+
       shell = mkShell {
         name = "sfd-shell";
 
         buildInputs =
-          [rustToolchain]
+          [rustToolchain sqlite]
           ++ (with pkgs; [
             cargo-expand
             cargo-machete
