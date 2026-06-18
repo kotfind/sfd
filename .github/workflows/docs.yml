@@ -1,0 +1,27 @@
+name: Docs
+
+on:
+  push:
+    branches: [exp]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - run: cargo doc --no-deps
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: target/doc
+
+      - uses: actions/deploy-pages@v5
