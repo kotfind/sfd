@@ -4,12 +4,12 @@ use std::sync::OnceLock;
 ///
 /// Can only be obtained via [`load`].
 #[derive(Debug, Clone, Copy)]
-pub struct VecExtLoadedProof(());
+pub struct VecExtLoadProof(());
 
-static PROOF: OnceLock<VecExtLoadedProof> = OnceLock::new();
+static PROOF: OnceLock<VecExtLoadProof> = OnceLock::new();
 
-/// Loads the sqlite-vec extension, returning [`VecExtLoadedProof`] as proof.
-pub fn load() -> VecExtLoadedProof {
+/// Loads the sqlite-vec extension, returning [`VecExtLoadProof`] as proof.
+pub fn load() -> VecExtLoadProof {
     *PROOF.get_or_init(|| {
         unsafe {
             libsqlite3_sys::sqlite3_auto_extension(Some(std::mem::transmute::<
@@ -23,6 +23,6 @@ pub fn load() -> VecExtLoadedProof {
                 sqlite_vec::sqlite3_vec_init as *const (),
             )));
         }
-        VecExtLoadedProof(())
+        VecExtLoadProof(())
     })
 }

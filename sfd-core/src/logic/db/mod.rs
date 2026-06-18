@@ -1,8 +1,8 @@
+mod connect;
 mod init;
 mod load_extension;
 mod store;
 
-pub(crate) use init::init;
-pub use load_extension::VecExtLoadedProof;
-pub(crate) use load_extension::load;
+pub use connect::connect;
+pub use load_extension::VecExtLoadProof;
 pub use store::insert_source;

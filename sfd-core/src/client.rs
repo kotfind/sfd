@@ -21,7 +21,7 @@ pub struct Client {
 impl Client {
     /// Creates a new client from config.
     pub async fn new(config: &Config) -> Result<Self, Error> {
-        let db = DbContext::new(config).await?;
+        let db = db::connect(config).await?;
         let vect = VectContext::new(config)?;
         let extract = ExtractContext::new(config)?;
         let scan = ScanContext::new(config)?;
