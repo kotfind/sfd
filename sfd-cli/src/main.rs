@@ -1,14 +1,17 @@
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use sfd_core::{Client, config::Config};
 
-/// CLI arguments.
+/// Semantic Find.
+///
+/// Semantic search over codebase comments.
 #[derive(Parser)]
+#[command(version, about, disable_help_subcommand = true)]
 struct Args {
     #[command(subcommand)]
     command: Command,
 }
 
-#[derive(Parser)]
+#[derive(Subcommand)]
 enum Command {
     /// Indexes the project.
     Index,
