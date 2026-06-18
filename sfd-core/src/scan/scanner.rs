@@ -24,7 +24,7 @@ pub(crate) async fn scan(ctx: ScanContext) -> Result<ProjectSources, Error> {
         }
 
         let rel = util::to_rel(entry.path(), &root);
-        let src = Source::new(rel, &ctx.inner.lang_exts).await?;
+        let src = Source::new(rel, ctx.lang_exts()).await?;
 
         srcs.push(src);
     }
@@ -33,14 +33,14 @@ pub(crate) async fn scan(ctx: ScanContext) -> Result<ProjectSources, Error> {
 }
 
 fn make_entries_iter(ctx: ScanContext) -> Result<Walk, Error> {
-    let root = ctx.inner.root_path.clone();
-    let exclude = ctx.inner.exclude.clone();
+    let root = ctx.root_path().clone();
+    let exclude = ctx.exclude().clone();
 
     let entries = WalkBuilder::new(&root)
         .standard_filters(false)
-        .git_ignore(ctx.inner.ignore_git)
-        .ignore(ctx.inner.ignore_ignore)
-        .hidden(ctx.inner.ignore_hidden)
+        .git_ignore(ctx.ignore_git())
+        .ignore(ctx.ignore_ignore())
+        .hidden(ctx.ignore_hidden())
         .filter_entry(move |entry| {
             let rel = util::to_rel(entry.path(), &root);
             !exclude.is_match(rel)

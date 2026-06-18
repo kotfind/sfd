@@ -7,17 +7,17 @@ use crate::{config::spec::Config, models::lang_name::LangName, scan::error::Erro
 /// Scan context.
 #[derive(Debug, Clone)]
 pub(crate) struct ScanContext {
-    pub(crate) inner: Arc<ScanContextInner>,
+    inner: Arc<ScanContextInner>,
 }
 
 #[derive(Debug)]
-pub(crate) struct ScanContextInner {
-    pub(crate) root_path: PathBuf,
-    pub(crate) exclude: GlobSet,
-    pub(crate) ignore_git: bool,
-    pub(crate) ignore_ignore: bool,
-    pub(crate) ignore_hidden: bool,
-    pub(crate) lang_exts: HashMap<LangName, Vec<String>>,
+struct ScanContextInner {
+    root_path: PathBuf,
+    exclude: GlobSet,
+    ignore_git: bool,
+    ignore_ignore: bool,
+    ignore_hidden: bool,
+    lang_exts: HashMap<LangName, Vec<String>>,
 }
 
 impl ScanContext {
@@ -50,5 +50,29 @@ impl ScanContext {
 
     pub(crate) fn root(&self) -> &std::path::Path {
         &self.inner.root_path
+    }
+
+    pub(crate) fn lang_exts(&self) -> &HashMap<LangName, Vec<String>> {
+        &self.inner.lang_exts
+    }
+
+    pub(crate) fn ignore_git(&self) -> bool {
+        self.inner.ignore_git
+    }
+
+    pub(crate) fn ignore_ignore(&self) -> bool {
+        self.inner.ignore_ignore
+    }
+
+    pub(crate) fn ignore_hidden(&self) -> bool {
+        self.inner.ignore_hidden
+    }
+
+    pub(crate) fn root_path(&self) -> &PathBuf {
+        &self.inner.root_path
+    }
+
+    pub(crate) fn exclude(&self) -> &GlobSet {
+        &self.inner.exclude
     }
 }

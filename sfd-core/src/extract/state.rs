@@ -14,17 +14,34 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub(crate) struct LangContextInner {
-    pub name: LangName,
+struct LangContextInner {
+    name: LangName,
 
-    pub exts: Vec<String>,
+    exts: Vec<String>,
 
-    pub lang: Language,
+    lang: Language,
 
-    pub query: Query,
+    query: Query,
+}
+
+/// Language context.
+#[derive(Clone, Debug)]
+pub struct LangContext {
+    inner: Arc<LangContextInner>,
 }
 
 impl LangContext {
+    fn new(name: LangName, exts: Vec<String>, lang: Language, query: Query) -> Self {
+        Self {
+            inner: Arc::new(LangContextInner {
+                name,
+                exts,
+                lang,
+                query,
+            }),
+        }
+    }
+
     pub fn lang(&self) -> &Language {
         &self.inner.lang
     }
@@ -34,24 +51,18 @@ impl LangContext {
     }
 }
 
-/// Language context.
-#[derive(Clone, Debug)]
-pub struct LangContext {
-    pub(crate) inner: Arc<LangContextInner>,
-}
-
 #[derive(Debug)]
-pub(crate) struct ExtractContextInner {
-    pub(crate) langs: HashMap<LangName, LangContext>,
+struct ExtractContextInner {
+    langs: HashMap<LangName, LangContext>,
 
     #[debug(skip)]
-    pub(crate) wasm_engine: Engine,
+    wasm_engine: Engine,
 }
 
 /// Extraction context.
 #[derive(Debug, Clone)]
 pub struct ExtractContext {
-    pub(crate) inner: Arc<ExtractContextInner>,
+    inner: Arc<ExtractContextInner>,
 }
 
 impl ExtractContext {
@@ -84,14 +95,7 @@ impl ExtractContext {
 
             langs.insert(
                 name.clone(),
-                LangContext {
-                    inner: Arc::new(LangContextInner {
-                        name: name.clone(),
-                        exts: lang_cfg.exts.clone(),
-                        lang,
-                        query,
-                    }),
-                },
+                LangContext::new(name.clone(), lang_cfg.exts.clone(), lang, query),
             );
         }
 
