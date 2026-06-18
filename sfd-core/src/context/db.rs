@@ -2,9 +2,7 @@ use std::{path::Path, str::FromStr};
 
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool};
 
-use crate::config::spec::Config;
-
-use super::{error::Error, init};
+use crate::{config::Config, error::DbError, logic::db::init};
 
 /// Database context.
 #[derive(Debug, Clone)]
@@ -14,7 +12,7 @@ pub struct DbContext {
 
 impl DbContext {
     /// Creates a new db context, connecting to and initializing the db.
-    pub async fn new(config: &Config) -> Result<Self, Error> {
+    pub async fn new(config: &Config) -> Result<Self, DbError> {
         let db_path = config
             .root()
             .join("sfd.db")

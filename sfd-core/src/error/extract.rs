@@ -1,12 +1,12 @@
 use std::{ops::RangeInclusive, path::PathBuf};
 
-use thiserror::Error;
+use thiserror;
 use tree_sitter::{LanguageError, QueryError, WasmError};
 
-use crate::extract::extract_items::{COMMENT_CAPTURE, ITEM_CAPTURE};
+use crate::logic::extract::{COMMENT_CAPTURE, ITEM_CAPTURE};
 
 /// Extraction error.
-#[derive(Debug, Error)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("failed to perform io operation: {0}")]
     Io(#[from] std::io::Error),

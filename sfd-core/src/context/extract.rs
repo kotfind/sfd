@@ -5,11 +5,9 @@ use tree_sitter::{Language, Query, WasmStore};
 use wasmtime::Engine;
 
 use crate::{
-    config::spec::Config,
-    extract::{
-        error::Error,
-        extract_items::{COMMENT_CAPTURE, ITEM_CAPTURE},
-    },
+    config::Config,
+    error::ExtractError,
+    logic::extract::{COMMENT_CAPTURE, ITEM_CAPTURE},
     models::lang_name::LangName,
 };
 
@@ -78,7 +76,7 @@ impl ExtractContext {
             .clone()
     }
 
-    pub fn new(config: &Config) -> Result<Self, Error> {
+    pub fn new(config: &Config) -> Result<Self, ExtractError> {
         let wasm_engine = Engine::default();
         let mut wasm_store = WasmStore::new(&wasm_engine)?;
         let mut langs = HashMap::new();
@@ -90,7 +88,7 @@ impl ExtractContext {
 
             let capture_names = query.capture_names();
             if !capture_names.contains(&COMMENT_CAPTURE) || !capture_names.contains(&ITEM_CAPTURE) {
-                return Err(Error::InvalidQuery);
+                return Err(ExtractError::InvalidQuery);
             }
 
             langs.insert(

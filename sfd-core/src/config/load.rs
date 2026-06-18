@@ -4,20 +4,21 @@ use schematic::ConfigLoader;
 
 use crate::dirs::DIRS;
 
-use super::error::Error;
-use super::spec::Config;
+use crate::error::ConfigError;
+
+use super::Config;
 
 const CONFIG_NAMES: &[&str] = &["sfd.yaml", "sfd.yml"];
 
 impl Config {
     /// Loads and merges user and project configs.
-    pub fn load() -> Result<Self, Error> {
+    pub fn load() -> Result<Self, ConfigError> {
         let cwd = std::env::current_dir().expect("failed to get CWD");
 
         let config_dir = DIRS.config_dir().to_path_buf();
         let user_cfg = get_first_existing([&config_dir], CONFIG_NAMES);
-        let proj_cfg =
-            get_first_existing(cwd.ancestors(), CONFIG_NAMES).ok_or(Error::ProjConfigNotFound)?;
+        let proj_cfg = get_first_existing(cwd.ancestors(), CONFIG_NAMES)
+            .ok_or(ConfigError::ProjConfigNotFound)?;
 
         let mut loader = ConfigLoader::new();
         if let Some(ref user_cfg) = user_cfg {

@@ -5,10 +5,8 @@ use tree_sitter::{
 };
 
 use crate::{
-    extract::{
-        error::Error,
-        state::{ExtractContext, LangContext},
-    },
+    context::{ExtractContext, LangContext},
+    error::ExtractError,
     models::{
         comment::Comment, ident::Ident, item::Item, source::Source, source_items::SourceItems,
         span::Span,
@@ -19,8 +17,8 @@ pub const COMMENT_CAPTURE: &str = "comment";
 pub const ITEM_CAPTURE: &str = "item";
 
 /// Extracts all the [Item]s from a [Source].
-pub fn extract(src: Source, ctx: &ExtractContext) -> Result<SourceItems, Error> {
-    let lang = ctx.get_lang(src.lang().ok_or_else(|| Error::NoLang {
+pub fn extract(src: Source, ctx: &ExtractContext) -> Result<SourceItems, ExtractError> {
+    let lang = ctx.get_lang(src.lang().ok_or_else(|| ExtractError::NoLang {
         path: src.path().to_path_buf(),
     })?);
     let tree = parse(src.clone(), &lang, ctx)?;
@@ -39,7 +37,7 @@ pub fn extract(src: Source, ctx: &ExtractContext) -> Result<SourceItems, Error> 
 }
 
 /// Parses a [Source].
-fn parse(src: Source, lang: &LangContext, ctx: &ExtractContext) -> Result<Tree, Error> {
+fn parse(src: Source, lang: &LangContext, ctx: &ExtractContext) -> Result<Tree, ExtractError> {
     let mut parser = Parser::new();
     let wasm_store = WasmStore::new(ctx.wasm_engine())?;
     parser.set_wasm_store(wasm_store)?;
@@ -50,14 +48,18 @@ fn parse(src: Source, lang: &LangContext, ctx: &ExtractContext) -> Result<Tree, 
         .expect("the language should've been provided");
 
     if tree.root_node().has_error() {
-        return Err(Error::SyntaxError);
+        return Err(ExtractError::SyntaxError);
     }
 
     Ok(tree)
 }
 
 /// Converts a match to an [Item].
-fn match_to_item(m: &QueryMatch, capture_names: &[&str], src: Source) -> Result<Item, Error> {
+fn match_to_item(
+    m: &QueryMatch,
+    capture_names: &[&str],
+    src: Source,
+) -> Result<Item, ExtractError> {
     let comment_nodes =
         get_named_captures(COMMENT_CAPTURE, 1..=usize::MAX, m.captures, capture_names)?;
     let comment = Comment::new(concat_node_text(&comment_nodes, src.clone())?);
@@ -78,7 +80,7 @@ fn get_named_captures<'tree>(
     range: RangeInclusive<usize>,
     captures: &[QueryCapture<'tree>],
     capture_names: &[&str],
-) -> Result<Vec<Node<'tree>>, Error> {
+) -> Result<Vec<Node<'tree>>, ExtractError> {
     let nodes: Vec<Node<'tree>> = captures
         .iter()
         .filter(|c| capture_names[c.index as usize] == name)
@@ -87,7 +89,7 @@ fn get_named_captures<'tree>(
 
     let count = nodes.len();
     if !range.contains(&count) {
-        return Err(Error::UnexpectedCaptureCount {
+        return Err(ExtractError::UnexpectedCaptureCount {
             name: name.to_owned(),
             expected: range,
             actual: count,
@@ -98,14 +100,14 @@ fn get_named_captures<'tree>(
 }
 
 /// Gets [Node]'s text.
-fn get_node_text<'tree>(node: &Node<'tree>, src: Source) -> Result<String, Error> {
+fn get_node_text<'tree>(node: &Node<'tree>, src: Source) -> Result<String, ExtractError> {
     node.utf8_text(src.content().as_bytes())
-        .map_err(|_| Error::NonUtf8)
+        .map_err(|_| ExtractError::NonUtf8)
         .map(|s| s.to_owned())
 }
 
 /// Gets and concatenates text from all the given [Node]s.
-fn concat_node_text<'tree>(nodes: &[Node<'tree>], src: Source) -> Result<String, Error> {
+fn concat_node_text<'tree>(nodes: &[Node<'tree>], src: Source) -> Result<String, ExtractError> {
     nodes
         .iter()
         .map(|node| get_node_text(node, src.clone()))

@@ -1,12 +1,12 @@
 use sha2::{Digest, Sha256};
 use sqlx::sqlite::SqlitePool;
 
-use super::error::Error;
+use crate::error::DbError;
 
 const SCHEMA: &str = include_str!("schema.sql");
 
 /// Inits db schema.
-pub async fn init(pool: &SqlitePool) -> Result<(), Error> {
+pub async fn init(pool: &SqlitePool) -> Result<(), DbError> {
     sqlx::query(SCHEMA).execute(pool).await?;
 
     let hash = hex::encode(Sha256::digest(SCHEMA));

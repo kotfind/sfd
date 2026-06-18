@@ -1,9 +1,5 @@
-use thiserror::Error;
-
-use crate::extract;
-
 /// Scanning error.
-#[derive(Debug, Error)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("invalid glob pattern: {0}")]
     Glob(#[from] globset::Error),
@@ -12,5 +8,5 @@ pub enum Error {
     Walk(#[from] ignore::Error),
 
     #[error("extraction failed: {0}")]
-    Extract(#[from] extract::error::Error),
+    Extract(#[from] super::ExtractError),
 }

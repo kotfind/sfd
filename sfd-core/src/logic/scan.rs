@@ -1,15 +1,14 @@
 use ignore::{Walk, WalkBuilder};
 
 use crate::{
+    context::ScanContext,
+    error::ScanError,
     models::{project_sources::ProjectSources, source::Source},
-    scan::error::Error,
     util,
 };
 
-use super::context::ScanContext;
-
 /// Scans the project.
-pub(crate) async fn scan(ctx: ScanContext) -> Result<ProjectSources, Error> {
+pub(crate) async fn scan(ctx: ScanContext) -> Result<ProjectSources, ScanError> {
     let root = ctx.root().to_path_buf();
     let entries = make_entries_iter(ctx.clone())?;
 
@@ -32,7 +31,7 @@ pub(crate) async fn scan(ctx: ScanContext) -> Result<ProjectSources, Error> {
     Ok(ProjectSources::new(srcs))
 }
 
-fn make_entries_iter(ctx: ScanContext) -> Result<Walk, Error> {
+fn make_entries_iter(ctx: ScanContext) -> Result<Walk, ScanError> {
     let root = ctx.root_path().clone();
     let exclude = ctx.exclude().clone();
 

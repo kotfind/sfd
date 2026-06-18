@@ -4,7 +4,7 @@ use std::{
     sync::Arc,
 };
 
-use crate::{extract::error::Error, models::lang_name::LangName};
+use crate::{error::ExtractError, models::lang_name::LangName};
 
 #[derive(Debug, Clone)]
 struct SourceInner {
@@ -28,7 +28,7 @@ impl Source {
     pub async fn new(
         path: impl Into<PathBuf>,
         lang_exts: &HashMap<LangName, Vec<String>>,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, ExtractError> {
         let path: PathBuf = path.into();
         let source = tokio::fs::read_to_string(&path).await?;
         let lang = guess_lang(&path, lang_exts);

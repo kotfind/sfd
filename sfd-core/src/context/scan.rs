@@ -2,11 +2,11 @@ use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 use globset::{GlobSet, GlobSetBuilder};
 
-use crate::{config::spec::Config, models::lang_name::LangName, scan::error::Error};
+use crate::{config::Config, error::ScanError, models::lang_name::LangName};
 
 /// Scan context.
 #[derive(Debug, Clone)]
-pub(crate) struct ScanContext {
+pub struct ScanContext {
     inner: Arc<ScanContextInner>,
 }
 
@@ -21,7 +21,7 @@ struct ScanContextInner {
 }
 
 impl ScanContext {
-    pub(crate) fn new(config: &Config) -> Result<Self, Error> {
+    pub fn new(config: &Config) -> Result<Self, ScanError> {
         let root_path = config.root().to_path_buf();
 
         let mut exclude_builder = GlobSetBuilder::new();
@@ -48,31 +48,31 @@ impl ScanContext {
         })
     }
 
-    pub(crate) fn root(&self) -> &std::path::Path {
+    pub fn root(&self) -> &std::path::Path {
         &self.inner.root_path
     }
 
-    pub(crate) fn lang_exts(&self) -> &HashMap<LangName, Vec<String>> {
+    pub fn lang_exts(&self) -> &HashMap<LangName, Vec<String>> {
         &self.inner.lang_exts
     }
 
-    pub(crate) fn ignore_git(&self) -> bool {
+    pub fn ignore_git(&self) -> bool {
         self.inner.ignore_git
     }
 
-    pub(crate) fn ignore_ignore(&self) -> bool {
+    pub fn ignore_ignore(&self) -> bool {
         self.inner.ignore_ignore
     }
 
-    pub(crate) fn ignore_hidden(&self) -> bool {
+    pub fn ignore_hidden(&self) -> bool {
         self.inner.ignore_hidden
     }
 
-    pub(crate) fn root_path(&self) -> &PathBuf {
+    pub fn root_path(&self) -> &PathBuf {
         &self.inner.root_path
     }
 
-    pub(crate) fn exclude(&self) -> &GlobSet {
+    pub fn exclude(&self) -> &GlobSet {
         &self.inner.exclude
     }
 }

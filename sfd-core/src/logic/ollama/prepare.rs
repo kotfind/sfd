@@ -2,7 +2,7 @@ use std::sync::LazyLock;
 
 use regex::Regex;
 
-use super::state::VectContext;
+use crate::context::VectContext;
 
 /// A list of chars NOT to filter out.
 static ALLOWED_CHAR_RE: LazyLock<Regex> =
