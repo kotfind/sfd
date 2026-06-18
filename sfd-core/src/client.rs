@@ -55,11 +55,12 @@ impl Client {
                 }
             };
 
-            let mut embeddings = Vec::new();
-            for item in &source_items.items {
-                let embedding = ollama::embed(item.comment.content(), self.vect.clone()).await?;
-                embeddings.push(embedding);
-            }
+            let texts: Vec<&str> = source_items
+                .items
+                .iter()
+                .map(|i| i.comment.content())
+                .collect();
+            let embeddings = ollama::embed(texts, self.vect.clone()).await?;
 
             let now = UtcDateTime::now();
             db::insert_source(self.db.clone(), source_items, &embeddings, now).await?;

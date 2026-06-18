@@ -2,12 +2,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::{context::VectContext, error::VectError, models::embedding::Embedding};
 
-use super::prepare;
+use super::prepare::prepare;
 
 #[derive(Serialize)]
 struct EmbedRequest<'a> {
     model: &'a str,
-    input: &'a str,
+    input: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -15,30 +15,26 @@ struct EmbedResponse {
     embeddings: Vec<Vec<f32>>,
 }
 
-/// Calls Ollama embedding model.
-///
-/// Use on already-prepared text (see [super::prepare::prepare]).
-pub async fn embed_prepared(text: &str, ctx: VectContext) -> Result<Embedding, VectError> {
+/// Prepares texts and gets their [Embedding]s in a single request.
+pub async fn embed(
+    texts: impl IntoIterator<Item = impl AsRef<str>>,
+    ctx: VectContext,
+) -> Result<Vec<Embedding>, VectError> {
+    let input: Vec<String> = texts
+        .into_iter()
+        .map(|t| prepare(t.as_ref(), ctx.clone()))
+        .collect();
+
     let resp = ctx
         .client()
         .post(super::ping::route(&ctx, "api/embed"))
         .json(&EmbedRequest {
             model: ctx.model(),
-            input: text,
+            input,
         })
         .send()
         .await?;
     let data: EmbedResponse = resp.error_for_status()?.json().await?;
-    Ok(Embedding::new(
-        data.embeddings
-            .into_iter()
-            .next()
-            .expect("expected exactly one embedding"),
-    ))
-}
 
-/// Prepares text and gets its [Embedding].
-pub async fn embed(text: &str, ctx: VectContext) -> Result<Embedding, VectError> {
-    let text = prepare::prepare(text, ctx.clone());
-    embed_prepared(&text, ctx).await
+    Ok(data.embeddings.into_iter().map(Embedding::new).collect())
 }
