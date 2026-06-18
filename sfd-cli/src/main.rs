@@ -1,5 +1,5 @@
 use clap::Parser;
-use sfd::{Client, config::Config};
+use sfd_core::{Client, config::Config};
 
 /// CLI arguments.
 #[derive(Parser)]

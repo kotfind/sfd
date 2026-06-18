@@ -1,25 +1,25 @@
 [package]
-name = "sfd"
+name = "sfd-core"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-tokio = { version = "1", features = ["full"] }
-thiserror = "2"
-schematic = { version = "0.19", features = ["yaml"] }
-serde = { version = "1", features = ["derive"] }
-directories = "6"
-url = { version = "2.5.8", features = ["serde"] }
-tree-sitter = { version = "0.26", features = ["wasm"] }
-derive_more = { version = "2", features = ["debug"] }
-globset = "0.4"
-ignore = "0.4"
-regex = "1"
-reqwest = { version = "0.12", features = ["json"] }
-sqlite-vec = "0.1"
-libsqlite3-sys = "0.30"
-time = { version = "0.3", features = ["formatting"] }
-sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite"] }
-hex = "0.4"
-sha2 = "0.10"
-wasmtime = "36"
+tokio = { workspace = true, features = ["full"] }
+thiserror = { workspace = true }
+schematic = { workspace = true, features = ["yaml"] }
+serde = { workspace = true, features = ["derive"] }
+directories = { workspace = true }
+url = { workspace = true, features = ["serde"] }
+tree-sitter = { workspace = true, features = ["wasm"] }
+derive_more = { workspace = true, features = ["debug"] }
+globset = { workspace = true }
+ignore = { workspace = true }
+regex = { workspace = true }
+reqwest = { workspace = true, features = ["json"] }
+sqlite-vec = { workspace = true }
+libsqlite3-sys = { workspace = true }
+time = { workspace = true, features = ["formatting"] }
+sqlx = { workspace = true, features = ["runtime-tokio", "sqlite"] }
+hex = { workspace = true }
+sha2 = { workspace = true }
+wasmtime = { workspace = true }
