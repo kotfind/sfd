@@ -1,14 +1,14 @@
-use std::fmt;
+use std::{fmt, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 
 /// A name of a language.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
-pub struct LangName(String);
+pub struct LangName(Arc<str>);
 
 impl LangName {
-    pub fn new(name: impl Into<String>) -> Self {
+    pub fn new(name: impl Into<Arc<str>>) -> Self {
         Self(name.into())
     }
 
@@ -31,6 +31,6 @@ impl AsRef<str> for LangName {
 
 impl From<String> for LangName {
     fn from(s: String) -> Self {
-        Self(s)
+        Self(Arc::from(s))
     }
 }
