@@ -22,7 +22,7 @@ impl Client {
     /// Creates a new client from config.
     pub async fn new(config: &Config) -> Result<Self, Error> {
         let db = db::connect(config).await?;
-        let vect = VectContext::new(config)?;
+        let vect = VectContext::new(config).await?;
         let extract = ExtractContext::new(config)?;
         let scan = ScanContext::new(config)?;
 
@@ -36,11 +36,6 @@ impl Client {
 
     /// Runs the full pipeline.
     pub async fn run(&self) -> Result<(), Error> {
-        ollama::ping(self.vect.clone()).await?;
-        if !ollama::has_model(self.vect.clone()).await? {
-            ollama::pull_model(self.vect.clone()).await?;
-        }
-
         let project = logic::scan::scan(self.scan.clone()).await?;
 
         for source in project.sources {

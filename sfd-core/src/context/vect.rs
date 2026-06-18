@@ -3,7 +3,7 @@ use std::sync::Arc;
 use reqwest::Client;
 use url::Url;
 
-use crate::{config::Config, error::VectError};
+use crate::{config::Config, error::VectError, logic::ollama};
 
 /// Vectorization context.
 #[derive(Debug, Clone)]
@@ -20,21 +20,25 @@ struct VectContextInner {
 }
 
 impl VectContext {
-    pub fn new(config: &Config) -> Result<Self, VectError> {
+    pub async fn new(config: &Config) -> Result<Self, VectError> {
         let url = Url::parse(&config.vect.ollama.url)?;
         let client = Client::builder()
             .timeout(std::time::Duration::from_secs_f64(
                 config.vect.ollama.timeout,
             ))
             .build()?;
-        Ok(Self {
+        let ctx = Self {
             inner: Arc::new(VectContextInner {
                 url,
                 model: config.vect.ollama.model.clone(),
                 client,
                 max_len: config.vect.max_len,
             }),
-        })
+        };
+
+        ollama::ensure_ready(ctx.clone()).await?;
+
+        Ok(ctx)
     }
 
     pub(crate) fn url(&self) -> &Url {
