@@ -7,7 +7,7 @@ use tree_sitter::{
 use crate::{
     extract::{
         error::Error,
-        state::{LangState, State},
+        state::{ExtractContext, LangContext},
     },
     models::{
         comment::Comment, ident::Ident, item::Item, source::Source, source_items::SourceItems,
@@ -19,11 +19,11 @@ pub const COMMENT_CAPTURE: &str = "comment";
 pub const ITEM_CAPTURE: &str = "item";
 
 /// Extracts all the [Item]s from a [Source].
-pub fn extract(src: Source, state: &State) -> Result<SourceItems, Error> {
-    let lang = state.get_lang(src.lang().ok_or_else(|| Error::NoLang {
+pub fn extract(src: Source, ctx: &ExtractContext) -> Result<SourceItems, Error> {
+    let lang = ctx.get_lang(src.lang().ok_or_else(|| Error::NoLang {
         path: src.path().to_path_buf(),
     })?);
-    let tree = parse(src.clone(), &lang, state)?;
+    let tree = parse(src.clone(), &lang, ctx)?;
 
     let mut cursor = QueryCursor::new();
     let mut matches = cursor.matches(lang.query(), tree.root_node(), src.content().as_bytes());
@@ -39,9 +39,9 @@ pub fn extract(src: Source, state: &State) -> Result<SourceItems, Error> {
 }
 
 /// Parses a [Source].
-fn parse(src: Source, lang: &LangState, state: &State) -> Result<Tree, Error> {
+fn parse(src: Source, lang: &LangContext, ctx: &ExtractContext) -> Result<Tree, Error> {
     let mut parser = Parser::new();
-    let wasm_store = WasmStore::new(&state.inner.wasm_engine)?;
+    let wasm_store = WasmStore::new(ctx.wasm_engine())?;
     parser.set_wasm_store(wasm_store)?;
     parser.set_language(lang.lang())?;
 

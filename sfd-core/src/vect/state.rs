@@ -7,21 +7,21 @@ use crate::config::spec::Config;
 
 use super::error::Error;
 
-/// Vectorization state.
+/// Vectorization context.
 #[derive(Debug, Clone)]
-pub struct State {
-    inner: Arc<StateInner>,
+pub struct VectContext {
+    inner: Arc<VectContextInner>,
 }
 
 #[derive(Debug)]
-struct StateInner {
+struct VectContextInner {
     url: Url,
     model: String,
     client: Client,
     max_len: usize,
 }
 
-impl State {
+impl VectContext {
     pub fn new(config: &Config) -> Result<Self, Error> {
         let url = Url::parse(&config.vect.ollama.url)?;
         let client = Client::builder()
@@ -30,7 +30,7 @@ impl State {
             ))
             .build()?;
         Ok(Self {
-            inner: Arc::new(StateInner {
+            inner: Arc::new(VectContextInner {
                 url,
                 model: config.vect.ollama.model.clone(),
                 client,

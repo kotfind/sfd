@@ -14,7 +14,7 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub(crate) struct LangStateInner {
+pub(crate) struct LangContextInner {
     pub name: LangName,
 
     pub exts: Vec<String>,
@@ -24,7 +24,7 @@ pub(crate) struct LangStateInner {
     pub query: Query,
 }
 
-impl LangState {
+impl LangContext {
     pub fn lang(&self) -> &Language {
         &self.inner.lang
     }
@@ -34,28 +34,32 @@ impl LangState {
     }
 }
 
-/// Language state.
+/// Language context.
 #[derive(Clone, Debug)]
-pub struct LangState {
-    pub(crate) inner: Arc<LangStateInner>,
+pub struct LangContext {
+    pub(crate) inner: Arc<LangContextInner>,
 }
 
 #[derive(Debug)]
-pub(crate) struct StateInner {
-    pub(crate) langs: HashMap<LangName, LangState>,
+pub(crate) struct ExtractContextInner {
+    pub(crate) langs: HashMap<LangName, LangContext>,
 
     #[debug(skip)]
     pub(crate) wasm_engine: Engine,
 }
 
-/// Extraction state.
+/// Extraction context.
 #[derive(Debug, Clone)]
-pub struct State {
-    pub(crate) inner: Arc<StateInner>,
+pub struct ExtractContext {
+    pub(crate) inner: Arc<ExtractContextInner>,
 }
 
-impl State {
-    pub fn get_lang(&self, name: &LangName) -> LangState {
+impl ExtractContext {
+    pub(crate) fn wasm_engine(&self) -> &Engine {
+        &self.inner.wasm_engine
+    }
+
+    pub fn get_lang(&self, name: &LangName) -> LangContext {
         self.inner
             .langs
             .get(name)
@@ -80,8 +84,8 @@ impl State {
 
             langs.insert(
                 name.clone(),
-                LangState {
-                    inner: Arc::new(LangStateInner {
+                LangContext {
+                    inner: Arc::new(LangContextInner {
                         name: name.clone(),
                         exts: lang_cfg.exts.clone(),
                         lang,
@@ -92,7 +96,7 @@ impl State {
         }
 
         Ok(Self {
-            inner: Arc::new(StateInner { langs, wasm_engine }),
+            inner: Arc::new(ExtractContextInner { langs, wasm_engine }),
         })
     }
 }

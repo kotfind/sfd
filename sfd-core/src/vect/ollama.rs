@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::models::embedding::Embedding;
-use crate::vect::state::State;
+use crate::vect::state::VectContext;
 
 use super::error::Error;
 
@@ -32,36 +32,35 @@ struct PullRequest<'a> {
     stream: bool,
 }
 
-fn route(state: &State, path: &str) -> url::Url {
-    state.url().join(path).expect("the route is incorrect")
+fn route(ctx: &VectContext, path: &str) -> url::Url {
+    ctx.url().join(path).expect("the route is incorrect")
 }
 
 /// Ping Ollama API.
-pub async fn ping(state: State) -> Result<(), Error> {
-    state.client().get(state.url().clone()).send().await?;
+pub async fn ping(ctx: VectContext) -> Result<(), Error> {
+    ctx.client().get(ctx.url().clone()).send().await?;
     Ok(())
 }
 
 /// Is ollama model pulled?
-pub async fn has_model(state: State) -> Result<bool, Error> {
-    let tags: TagsResponse = state
+pub async fn has_model(ctx: VectContext) -> Result<bool, Error> {
+    let tags: TagsResponse = ctx
         .client()
-        .get(route(&state, "api/tags"))
+        .get(route(&ctx, "api/tags"))
         .send()
         .await?
         .error_for_status()?
         .json()
         .await?;
-    Ok(tags.models.iter().any(|m| m.name == state.model()))
+    Ok(tags.models.iter().any(|m| m.name == ctx.model()))
 }
 
 /// Pulls the model.
-pub async fn pull_model(state: State) -> Result<(), Error> {
-    state
-        .client()
-        .post(route(&state, "api/pull"))
+pub async fn pull_model(ctx: VectContext) -> Result<(), Error> {
+    ctx.client()
+        .post(route(&ctx, "api/pull"))
         .json(&PullRequest {
-            model: state.model(),
+            model: ctx.model(),
             stream: false,
         })
         .send()
@@ -73,12 +72,12 @@ pub async fn pull_model(state: State) -> Result<(), Error> {
 /// Calls Ollama embedding model.
 ///
 /// Use on already-prepared text (see [super::prepare::prepare]).
-pub async fn embed_prepared(text: &str, state: State) -> Result<Embedding, Error> {
-    let resp = state
+pub async fn embed_prepared(text: &str, ctx: VectContext) -> Result<Embedding, Error> {
+    let resp = ctx
         .client()
-        .post(route(&state, "api/embed"))
+        .post(route(&ctx, "api/embed"))
         .json(&EmbedRequest {
-            model: state.model(),
+            model: ctx.model(),
             input: text,
         })
         .send()
@@ -93,7 +92,7 @@ pub async fn embed_prepared(text: &str, state: State) -> Result<Embedding, Error
 }
 
 /// Prepares text and gets its [Embedding].
-pub async fn embed(text: &str, state: State) -> Result<Embedding, Error> {
-    let text = super::prepare::prepare(text, state.clone());
-    embed_prepared(&text, state).await
+pub async fn embed(text: &str, ctx: VectContext) -> Result<Embedding, Error> {
+    let text = super::prepare::prepare(text, ctx.clone());
+    embed_prepared(&text, ctx).await
 }
