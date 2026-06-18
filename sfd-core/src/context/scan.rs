@@ -17,7 +17,7 @@ struct ScanContextInner {
     ignore_git: bool,
     ignore_ignore: bool,
     ignore_hidden: bool,
-    lang_exts: HashMap<LangName, Vec<String>>,
+    ext_to_lang: HashMap<String, LangName>,
 }
 
 impl ScanContext {
@@ -30,11 +30,12 @@ impl ScanContext {
         }
         let exclude = exclude_builder.build()?;
 
-        let lang_exts = config
-            .langs
-            .iter()
-            .map(|(name, cfg)| (name.clone(), cfg.exts.clone()))
-            .collect();
+        let mut ext_to_lang = HashMap::new();
+        for (name, cfg) in &config.langs {
+            for ext in &cfg.exts {
+                ext_to_lang.insert(ext.clone(), name.clone());
+            }
+        }
 
         Ok(Self {
             inner: Arc::new(ScanContextInner {
@@ -43,7 +44,7 @@ impl ScanContext {
                 ignore_git: config.scan.ignore_git,
                 ignore_ignore: config.scan.ignore_ignore,
                 ignore_hidden: config.scan.ignore_hidden,
-                lang_exts,
+                ext_to_lang,
             }),
         })
     }
@@ -52,8 +53,8 @@ impl ScanContext {
         &self.inner.root_path
     }
 
-    pub fn lang_exts(&self) -> &HashMap<LangName, Vec<String>> {
-        &self.inner.lang_exts
+    pub fn ext_to_lang(&self) -> &HashMap<String, LangName> {
+        &self.inner.ext_to_lang
     }
 
     pub fn ignore_git(&self) -> bool {

@@ -27,11 +27,11 @@ pub struct Source {
 impl Source {
     pub async fn new(
         path: impl Into<PathBuf>,
-        lang_exts: &HashMap<LangName, Vec<String>>,
+        ext_to_lang: &HashMap<String, LangName>,
     ) -> Result<Self, ExtractError> {
         let path: PathBuf = path.into();
         let source = tokio::fs::read_to_string(&path).await?;
-        let lang = guess_lang(&path, lang_exts);
+        let lang = guess_lang(&path, ext_to_lang);
         Ok(Self {
             inner: Arc::new(SourceInner {
                 path,
@@ -54,9 +54,7 @@ impl Source {
     }
 }
 
-fn guess_lang(path: &Path, lang_exts: &HashMap<LangName, Vec<String>>) -> Option<LangName> {
+fn guess_lang(path: &Path, ext_to_lang: &HashMap<String, LangName>) -> Option<LangName> {
     let ext = path.extension()?.to_str()?;
-    lang_exts
-        .iter()
-        .find_map(|(name, exts)| exts.iter().any(|e| e == ext).then_some(name.clone()))
+    ext_to_lang.get(ext).cloned()
 }
