@@ -4,7 +4,7 @@ use crate::{
     config::Config,
     context::{DbContext, ExtractContext, ScanContext, VectContext},
     error::Error,
-    logic::{self, db, ollama},
+    logic::{db, extract, ollama, scan},
 };
 
 /// App client.
@@ -36,10 +36,10 @@ impl Client {
 
     /// Runs the full pipeline.
     pub async fn run(&self) -> Result<(), Error> {
-        let project = logic::scan::scan(self.scan.clone()).await?;
+        let project = scan::scan(self.scan.clone()).await?;
 
         for source in project.sources {
-            let source_items = match logic::extract::extract(source, &self.extract) {
+            let source_items = match extract::extract(source, &self.extract) {
                 Ok(items) => items,
                 Err(e) => {
                     if e.is_file_local() {
