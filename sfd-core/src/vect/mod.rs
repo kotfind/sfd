@@ -1,6 +1,6 @@
-pub mod embed;
 pub mod error;
-mod ollama;
+pub mod ollama;
 mod prepare;
+pub mod state;
 
-pub use embed::embed;
+pub use state::State;

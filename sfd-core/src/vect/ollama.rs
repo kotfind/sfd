@@ -1,8 +1,7 @@
-use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use url::Url;
 
-use crate::{config::spec::Config, models::embedding::Embedding};
+use crate::models::embedding::Embedding;
+use crate::vect::state::State;
 
 use super::error::Error;
 
@@ -17,22 +16,69 @@ struct EmbedResponse {
     embeddings: Vec<Vec<f32>>,
 }
 
+#[derive(Deserialize)]
+struct TagsResponse {
+    models: Vec<ModelInfo>,
+}
+
+#[derive(Deserialize)]
+struct ModelInfo {
+    name: String,
+}
+
+#[derive(Serialize)]
+struct PullRequest<'a> {
+    model: &'a str,
+    stream: bool,
+}
+
+fn route(state: &State, path: &str) -> url::Url {
+    state.url().join(path).expect("the route is incorrect")
+}
+
+/// Ping Ollama API.
+pub async fn ping(state: State) -> Result<(), Error> {
+    state.client().get(state.url().clone()).send().await?;
+    Ok(())
+}
+
+/// Is ollama model pulled?
+pub async fn has_model(state: State) -> Result<bool, Error> {
+    let tags: TagsResponse = state
+        .client()
+        .get(route(&state, "api/tags"))
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await?;
+    Ok(tags.models.iter().any(|m| m.name == state.model()))
+}
+
+/// Pulls the model.
+pub async fn pull_model(state: State) -> Result<(), Error> {
+    state
+        .client()
+        .post(route(&state, "api/pull"))
+        .json(&PullRequest {
+            model: state.model(),
+            stream: false,
+        })
+        .send()
+        .await?
+        .error_for_status()?;
+    Ok(())
+}
+
 /// Calls Ollama embedding model.
 ///
 /// Use on already-prepared text (see [super::prepare::prepare]).
-pub async fn embed_prepared(
-    text: &str,
-    config: &Config,
-    client: &Client,
-) -> Result<Embedding, Error> {
-    let url = Url::parse(&config.vect.ollama.url)
-        .expect("invalid ollama base url")
-        .join("api/embed")
-        .expect("invalid ollama embed endpoint");
-    let resp = client
-        .post(url)
+pub async fn embed_prepared(text: &str, state: State) -> Result<Embedding, Error> {
+    let resp = state
+        .client()
+        .post(route(&state, "api/embed"))
         .json(&EmbedRequest {
-            model: &config.vect.ollama.model,
+            model: state.model(),
             input: text,
         })
         .send()
@@ -44,4 +90,10 @@ pub async fn embed_prepared(
             .next()
             .expect("expected exactly one embedding"),
     ))
+}
+
+/// Prepares text and gets its [Embedding].
+pub async fn embed(text: &str, state: State) -> Result<Embedding, Error> {
+    let text = super::prepare::prepare(text, state.clone());
+    embed_prepared(&text, state).await
 }

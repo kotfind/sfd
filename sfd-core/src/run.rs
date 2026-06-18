@@ -1,17 +1,22 @@
-use reqwest::Client;
-use std::time::Duration;
-
 use crate::{
-    config::spec::Config, db, error::Error, extract, extract::state::State, scan::scanner, vect,
+    config::spec::Config,
+    db,
+    error::Error,
+    extract,
+    extract::state::State,
+    scan::scanner,
+    vect::{self, State as VectState},
 };
 
 /// Runs the whole pipeline.
 pub async fn run(config: &Config) -> Result<(), Error> {
     let pool = db::connect(config).await?;
 
-    let client = Client::builder()
-        .timeout(Duration::from_secs_f64(config.vect.ollama.timeout))
-        .build()?;
+    let vect_state = VectState::new(config)?;
+    vect::ollama::ping(vect_state.clone()).await?;
+    if !vect::ollama::has_model(vect_state.clone()).await? {
+        vect::ollama::pull_model(vect_state.clone()).await?;
+    }
 
     let state = State::new(config)?;
     let project = scanner::scan(config).await?;
@@ -29,7 +34,7 @@ pub async fn run(config: &Config) -> Result<(), Error> {
         };
 
         for item in source_items.items {
-            let embedding = vect::embed(item.comment.content(), config, &client).await?;
+            let embedding = vect::ollama::embed(item.comment.content(), vect_state.clone()).await?;
 
             // TODO: store item + embedding in db
         }
