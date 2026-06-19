@@ -18,6 +18,7 @@ sfd-core = { path = "sfd-core" }
 sha2 = "0.10"
 sqlite-vec = "0.1"
 sqlx = "0.8"
+tabled = "0.19"
 thiserror = "2"
 time = "0.3"
 tokio = "1"

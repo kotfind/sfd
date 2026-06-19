@@ -1,7 +1,10 @@
 use clap::Parser;
 use sfd_core::Client;
 
-use crate::error::Error;
+use crate::{
+    error::Error,
+    view::table::{self, search::SearchRow},
+};
 
 /// Semantically searches the project.
 #[derive(Parser)]
@@ -16,17 +19,8 @@ pub struct SearchCmd {
 
 pub async fn run(cmd: SearchCmd, client: Client) -> Result<(), Error> {
     let results = client.search(&cmd.query, cmd.number).await?;
-    for r in results {
-        let sim = r.sim * 100.0;
-        println!(
-            "{}:{}:{} ({:.0}%) {}",
-            r.loc.src.path().display(),
-            r.loc.line_num + 1,
-            r.loc.col_num + 1,
-            sim,
-            r.text,
-        );
-    }
+    let rows: Vec<SearchRow> = results.into_iter().map(SearchRow::from).collect();
+    table::print(rows);
 
     Ok(())
 }

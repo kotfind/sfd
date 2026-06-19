@@ -1,5 +1,6 @@
 mod cmd;
 mod error;
+mod view;
 
 use clap::{Parser, Subcommand};
 use cmd::{index::IndexCmd, search::SearchCmd};
