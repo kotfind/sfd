@@ -17,34 +17,39 @@ pub const COMMENT_CAPTURE: &str = "comment";
 pub const ITEM_CAPTURE: &str = "item";
 
 /// Extracts all the [Item]s from a [Source].
-pub fn extract(src: Source, ctx: &ExtractContext) -> Result<SourceItems, ExtractError> {
-    let lang = ctx.get_lang(src.lang().ok_or_else(|| ExtractError::NoLang {
-        path: src.path().to_path_buf(),
-    })?);
-    let tree = parse(src.clone(), &lang, ctx)?;
+pub async fn extract(src: Source, ctx: &ExtractContext) -> Result<SourceItems, ExtractError> {
+    let ext = src.path().extension().and_then(|e| e.to_str());
+    let lang_name = ext
+        .and_then(|e| ctx.ext_to_lang(e))
+        .ok_or_else(|| ExtractError::NoLang {
+            path: src.path().to_path_buf(),
+        })?;
+    let lang = ctx.get_lang(lang_name);
+    let content = tokio::fs::read_to_string(src.path()).await?;
+    let tree = parse(&content, &lang, ctx)?;
 
     let mut cursor = QueryCursor::new();
-    let mut matches = cursor.matches(lang.query(), tree.root_node(), src.content().as_bytes());
+    let mut matches = cursor.matches(lang.query(), tree.root_node(), content.as_bytes());
 
     let capture_names = lang.query().capture_names();
 
     let mut items = Vec::new();
     while let Some(m) = matches.next() {
-        items.push(match_to_item(m, capture_names, src.clone())?);
+        items.push(match_to_item(m, capture_names, src.clone(), &content)?);
     }
 
     Ok(SourceItems::new(src, items))
 }
 
-/// Parses a [Source].
-fn parse(src: Source, lang: &LangContext, ctx: &ExtractContext) -> Result<Tree, ExtractError> {
+/// Parses a source file's content.
+fn parse(content: &str, lang: &LangContext, ctx: &ExtractContext) -> Result<Tree, ExtractError> {
     let mut parser = Parser::new();
     let wasm_store = WasmStore::new(ctx.wasm_engine())?;
     parser.set_wasm_store(wasm_store)?;
     parser.set_language(lang.lang())?;
 
     let tree = parser
-        .parse(src.content(), None)
+        .parse(content, None)
         .expect("the language should've been provided");
 
     if tree.root_node().has_error() {
@@ -59,13 +64,14 @@ fn match_to_item(
     m: &QueryMatch,
     capture_names: &[&str],
     src: Source,
+    content: &str,
 ) -> Result<Item, ExtractError> {
     let comment_nodes =
         get_named_captures(COMMENT_CAPTURE, 1..=usize::MAX, m.captures, capture_names)?;
-    let comment = Comment::new(concat_node_text(&comment_nodes, src.clone())?);
+    let comment = Comment::new(concat_node_text(&comment_nodes, content)?);
 
     let item_node = &get_named_captures(ITEM_CAPTURE, 1..=1, m.captures, capture_names)?[0];
-    let ident = Ident::new(get_node_text(item_node, src.clone())?);
+    let ident = Ident::new(get_node_text(item_node, content)?);
 
     let offset = item_node.start_byte();
     let pos = item_node.start_position();
@@ -100,17 +106,17 @@ fn get_named_captures<'tree>(
 }
 
 /// Gets [Node]'s text.
-fn get_node_text<'tree>(node: &Node<'tree>, src: Source) -> Result<String, ExtractError> {
-    node.utf8_text(src.content().as_bytes())
+fn get_node_text<'tree>(node: &Node<'tree>, content: &str) -> Result<String, ExtractError> {
+    node.utf8_text(content.as_bytes())
         .map_err(|_| ExtractError::NonUtf8)
         .map(|s| s.to_owned())
 }
 
 /// Gets and concatenates text from all the given [Node]s.
-fn concat_node_text<'tree>(nodes: &[Node<'tree>], src: Source) -> Result<String, ExtractError> {
+fn concat_node_text<'tree>(nodes: &[Node<'tree>], content: &str) -> Result<String, ExtractError> {
     nodes
         .iter()
-        .map(|node| get_node_text(node, src.clone()))
+        .map(|node| get_node_text(node, content))
         .collect::<Result<Vec<_>, _>>()
         .map(|texts| texts.join("\n"))
 }

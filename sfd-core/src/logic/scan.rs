@@ -23,7 +23,7 @@ pub(crate) async fn scan(ctx: ScanContext) -> Result<ProjectSources, ScanError> 
         }
 
         let rel = util::to_rel(entry.path(), &root);
-        let src = Source::new(rel, ctx.ext_to_lang()).await?;
+        let src = Source::new(rel);
 
         srcs.push(src);
     }

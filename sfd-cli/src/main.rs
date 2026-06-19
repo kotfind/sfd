@@ -43,9 +43,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let sim = r.sim * 100.0;
                 println!(
                     "{}:{}:{} ({:.0}%) {}",
-                    r.file.display(),
-                    r.line_num + 1,
-                    r.col_num + 1,
+                    r.loc.src.path().display(),
+                    r.loc.line_num + 1,
+                    r.loc.col_num + 1,
                     sim,
                     r.text,
                 );

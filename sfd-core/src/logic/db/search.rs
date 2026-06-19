@@ -1,15 +1,15 @@
 use std::path::PathBuf;
 
-use crate::{context::DbContext, error::DbError, models::embedding::Embedding};
+use crate::{
+    context::DbContext,
+    error::DbError,
+    models::{embedding::Embedding, location::Location, source::Source},
+};
 
 /// A search result.
 #[derive(Debug, Clone)]
 pub struct SearchResult {
-    pub file: PathBuf,
-
-    pub line_num: usize,
-
-    pub col_num: usize,
+    pub loc: Location,
 
     pub text: String,
 
@@ -44,12 +44,13 @@ pub async fn search(
 
     Ok(rows
         .into_iter()
-        .map(|(line_num, col_num, text, path, distance)| SearchResult {
-            file: PathBuf::from(path),
-            line_num: line_num as usize,
-            col_num: col_num as usize,
-            text,
-            sim: 1.0 - distance / 2.0,
+        .map(|(line_num, col_num, text, path, distance)| {
+            let src = Source::new(PathBuf::from(path));
+            SearchResult {
+                loc: Location::new(src, 0, line_num as usize, col_num as usize),
+                text,
+                sim: 1.0 - distance / 2.0,
+            }
         })
         .collect())
 }

@@ -39,7 +39,7 @@ impl Client {
         let project = scan::scan(self.scan.clone()).await?;
 
         for source in project.sources {
-            let source_items = match extract::extract(source, &self.extract) {
+            let source_items = match extract::extract(source, &self.extract).await {
                 Ok(items) => items,
                 Err(e) => {
                     if e.is_file_local() {

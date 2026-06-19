@@ -53,6 +53,8 @@ impl LangContext {
 struct ExtractContextInner {
     langs: HashMap<LangName, LangContext>,
 
+    ext_to_lang: HashMap<String, LangName>,
+
     #[debug(skip)]
     wasm_engine: Engine,
 }
@@ -76,10 +78,15 @@ impl ExtractContext {
             .clone()
     }
 
+    pub fn ext_to_lang(&self, ext: &str) -> Option<&LangName> {
+        self.inner.ext_to_lang.get(ext)
+    }
+
     pub fn new(config: &Config) -> Result<Self, ExtractError> {
         let wasm_engine = Engine::default();
         let mut wasm_store = WasmStore::new(&wasm_engine)?;
         let mut langs = HashMap::new();
+        let mut ext_to_lang = HashMap::new();
 
         for (name, lang_cfg) in &config.langs {
             let wasm_bytes = fs::read(&lang_cfg.parser)?;
@@ -91,6 +98,10 @@ impl ExtractContext {
                 return Err(ExtractError::InvalidQuery);
             }
 
+            for ext in &lang_cfg.exts {
+                ext_to_lang.insert(ext.clone(), name.clone());
+            }
+
             langs.insert(
                 name.clone(),
                 LangContext::new(name.clone(), lang_cfg.exts.clone(), lang, query),
@@ -98,7 +109,11 @@ impl ExtractContext {
         }
 
         Ok(Self {
-            inner: Arc::new(ExtractContextInner { langs, wasm_engine }),
+            inner: Arc::new(ExtractContextInner {
+                langs,
+                ext_to_lang,
+                wasm_engine,
+            }),
         })
     }
 }
