@@ -4,7 +4,7 @@ use crate::{
     SearchResult,
     config::Config,
     context::{DbContext, ExtractContext, ScanContext, VectContext},
-    error::Error,
+    error::{Error, ExtractError},
     logic::{db, extract, guess_lang, ollama, scan},
     models::source::Source,
 };
@@ -61,13 +61,11 @@ impl Client {
 
         let source_items = match extract::extract(source, &lang_name, &self.extract).await {
             Ok(items) => items,
-            Err(e) => {
-                if e.is_file_local() {
-                    eprintln!("extraction error: {e}");
-                    return Ok(());
-                }
-                return Err(Error::Extract(e));
+            Err(ExtractError::File(e)) => {
+                eprintln!("extraction error: {e}");
+                return Ok(());
             }
+            Err(e) => return Err(e.into()),
         };
 
         let texts: Vec<&str> = source_items

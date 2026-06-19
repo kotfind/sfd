@@ -1,9 +1,10 @@
-use std::{ops::RangeInclusive, path::PathBuf};
-
 use thiserror;
 use tree_sitter::{LanguageError, QueryError, WasmError};
 
-use crate::logic::extract::{COMMENT_CAPTURE, ITEM_CAPTURE};
+use crate::{
+    error::FileExtractError,
+    logic::extract::{COMMENT_CAPTURE, ITEM_CAPTURE},
+};
 
 /// Extraction error.
 #[derive(Debug, thiserror::Error)]
@@ -25,29 +26,6 @@ pub enum Error {
     )]
     InvalidQuery,
 
-    #[error("unexpected number of @{name} captures (expected {expected:?}, got {actual})")]
-    UnexpectedCaptureCount {
-        name: String,
-        expected: RangeInclusive<usize>,
-        actual: usize,
-    },
-
-    #[error("no language detected for `{path}`")]
-    NoLang { path: PathBuf },
-
-    #[error("source file contains syntax errors")]
-    SyntaxError,
-
-    #[error("tree-sitter returned a non-utf8 slice")]
-    NonUtf8,
-}
-
-impl Error {
-    /// Was this error caused by a single file's contents?
-    pub fn is_file_local(&self) -> bool {
-        matches!(
-            self,
-            Error::NoLang { .. } | Error::SyntaxError | Error::NonUtf8
-        )
-    }
+    #[error("per-file extraction error: {0}")]
+    File(#[from] FileExtractError),
 }

@@ -6,7 +6,7 @@ use tree_sitter::{
 
 use crate::{
     context::{ExtractContext, LangContext},
-    error::ExtractError,
+    error::{ExtractError, FileExtractError},
     models::{
         comment::Comment, ident::Ident, item::Item, lang_name::LangName, location::Location,
         source::Source, source_items::SourceItems,
@@ -33,7 +33,9 @@ pub async fn extract(
 
     let mut items = Vec::new();
     while let Some(m) = matches.next() {
-        items.push(match_to_item(m, capture_names, src.clone(), &content)?);
+        items.push(
+            match_to_item(m, capture_names, src.clone(), &content).map_err(ExtractError::File)?,
+        );
     }
 
     Ok(SourceItems::new(src, items))
@@ -51,7 +53,7 @@ fn parse(content: &str, lang: &LangContext, ctx: &ExtractContext) -> Result<Tree
         .expect("the language should've been provided");
 
     if tree.root_node().has_error() {
-        return Err(ExtractError::SyntaxError);
+        return Err(ExtractError::File(FileExtractError::SyntaxError));
     }
 
     Ok(tree)
@@ -63,7 +65,7 @@ fn match_to_item(
     capture_names: &[&str],
     src: Source,
     content: &str,
-) -> Result<Item, ExtractError> {
+) -> Result<Item, FileExtractError> {
     let comment_nodes =
         get_named_captures(COMMENT_CAPTURE, 1..=usize::MAX, m.captures, capture_names)?;
     let comment = Comment::new(concat_node_text(&comment_nodes, content)?);
@@ -84,7 +86,7 @@ fn get_named_captures<'tree>(
     range: RangeInclusive<usize>,
     captures: &[QueryCapture<'tree>],
     capture_names: &[&str],
-) -> Result<Vec<Node<'tree>>, ExtractError> {
+) -> Result<Vec<Node<'tree>>, FileExtractError> {
     let nodes: Vec<Node<'tree>> = captures
         .iter()
         .filter(|c| capture_names[c.index as usize] == name)
@@ -93,7 +95,7 @@ fn get_named_captures<'tree>(
 
     let count = nodes.len();
     if !range.contains(&count) {
-        return Err(ExtractError::UnexpectedCaptureCount {
+        return Err(FileExtractError::UnexpectedCaptureCount {
             name: name.to_owned(),
             expected: range,
             actual: count,
@@ -104,14 +106,17 @@ fn get_named_captures<'tree>(
 }
 
 /// Gets [Node]'s text.
-fn get_node_text<'tree>(node: &Node<'tree>, content: &str) -> Result<String, ExtractError> {
+fn get_node_text<'tree>(node: &Node<'tree>, content: &str) -> Result<String, FileExtractError> {
     node.utf8_text(content.as_bytes())
-        .map_err(|_| ExtractError::NonUtf8)
+        .map_err(|_| FileExtractError::NonUtf8)
         .map(|s| s.to_owned())
 }
 
 /// Gets and concatenates text from all the given [Node]s.
-fn concat_node_text<'tree>(nodes: &[Node<'tree>], content: &str) -> Result<String, ExtractError> {
+fn concat_node_text<'tree>(
+    nodes: &[Node<'tree>],
+    content: &str,
+) -> Result<String, FileExtractError> {
     nodes
         .iter()
         .map(|node| get_node_text(node, content))

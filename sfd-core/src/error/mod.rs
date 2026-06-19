@@ -1,12 +1,14 @@
 mod config;
 mod db;
 mod extract;
+mod file_extract;
 mod scan;
 mod vect;
 
 pub use config::Error as ConfigError;
 pub use db::Error as DbError;
 pub use extract::Error as ExtractError;
+pub use file_extract::Error as FileExtractError;
 pub use scan::Error as ScanError;
 pub use vect::Error as VectError;
 
