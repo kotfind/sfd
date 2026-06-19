@@ -20,8 +20,8 @@ pub struct Client {
 
 impl Client {
     /// Creates a new client from config.
-    pub async fn new(config: &Config) -> Result<Self, Error> {
-        let db = db::connect(config).await?;
+    pub async fn new(config: &Config, allow_create_db: bool) -> Result<Self, Error> {
+        let db = db::connect(config, allow_create_db).await?;
         let vect = VectContext::new(config).await?;
         let extract = ExtractContext::new(config)?;
         let scan = ScanContext::new(config)?;
@@ -62,5 +62,16 @@ impl Client {
         }
 
         Ok(())
+    }
+
+    /// Searches indexed comments.
+    pub async fn search(&self, query: &str, limit: u32) -> Result<Vec<db::SearchResult>, Error> {
+        let embedding = ollama::embed([query], self.vect.clone())
+            .await?
+            .into_iter()
+            .next()
+            .expect("expected exactly one embedding");
+
+        Ok(db::search(self.db.clone(), &embedding, limit).await?)
     }
 }

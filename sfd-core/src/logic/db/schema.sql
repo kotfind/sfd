@@ -16,7 +16,7 @@ CREATE TABLE item (
 );
 
 CREATE VIRTUAL TABLE vec USING vec0(
-    value float[768]
+    value FLOAT[768] DISTANCE_METRIC=COSINE
 );
 
 CREATE TABLE setting (

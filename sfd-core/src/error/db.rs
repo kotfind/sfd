@@ -6,4 +6,7 @@ pub enum Error {
 
     #[error("schema hash mismatch")]
     SchemaMismatch,
+
+    #[error("database not found")]
+    NotFound,
 }

@@ -10,7 +10,7 @@ use super::{
 };
 
 /// Connects to db.
-pub async fn connect(config: &Config) -> Result<DbContext, DbError> {
+pub async fn connect(config: &Config, allow_create: bool) -> Result<DbContext, DbError> {
     let vec = load();
 
     let db_path = config
@@ -21,7 +21,11 @@ pub async fn connect(config: &Config) -> Result<DbContext, DbError> {
         .to_owned();
     let is_new = !Path::new(&db_path).exists();
 
-    let options = SqliteConnectOptions::from_str(&db_path)?.create_if_missing(true);
+    if !allow_create && is_new {
+        return Err(DbError::NotFound);
+    }
+
+    let options = SqliteConnectOptions::from_str(&db_path)?.create_if_missing(allow_create);
     let pool = SqlitePool::connect_with(options).await?;
 
     if is_new {

@@ -15,6 +15,16 @@ struct Args {
 enum Command {
     /// Indexes the project.
     Index,
+
+    /// Semantically searches the project.
+    Search {
+        /// Search query.
+        query: String,
+
+        /// Number of results.
+        #[arg(short = 'n', long, default_value = "10")]
+        number: u32,
+    },
 }
 
 #[tokio::main]
@@ -22,10 +32,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     let config = Config::load()?;
-    let client = Client::new(&config).await?;
+    let allow_create_db = matches!(args.command, Command::Index);
+    let client = Client::new(&config, allow_create_db).await?;
 
     match args.command {
         Command::Index => client.index().await?,
+        Command::Search { query, number } => {
+            let results = client.search(&query, number).await?;
+            for r in results {
+                let sim = r.sim * 100.0;
+                println!(
+                    "{}:{}:{} ({:.0}%) {}",
+                    r.file.display(),
+                    r.line + 1,
+                    r.col + 1,
+                    sim,
+                    r.text,
+                );
+            }
+        }
     }
 
     Ok(())
