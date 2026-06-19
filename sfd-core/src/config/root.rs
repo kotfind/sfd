@@ -8,6 +8,7 @@ use crate::models::lang_name::LangName;
 #[allow(unused_imports)]
 use super::ollama::PartialOllamaConfig;
 use super::{
+    db::{DbConfig, PartialDbConfig},
     lang::LangConfig,
     scan::{PartialScanConfig, ScanConfig},
     vect::{PartialVectConfig, VectConfig},
@@ -24,6 +25,9 @@ pub struct Config {
 
     #[setting(nested)]
     pub vect: VectConfig,
+
+    #[setting(nested)]
+    pub db: DbConfig,
 
     /// A root path of the project.
     #[setting(skip)]

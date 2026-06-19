@@ -13,4 +13,8 @@ pub struct OllamaConfig {
     /// Timeout for a single query, in seconds.
     #[setting(default = 30.0)]
     pub timeout: f64,
+
+    /// The maximal amount of Ollama API requests to run in parallel.
+    #[setting(default = 1)]
+    pub max_parallel: usize,
 }

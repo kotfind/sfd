@@ -1,14 +1,16 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
+use futures::stream::{FuturesUnordered, StreamExt};
 use time::UtcDateTime;
+use tokio::sync::Semaphore;
 
 use crate::{
     SearchResult,
     config::Config,
     context::{DbContext, ExtractContext, ScanContext, VectContext},
-    error::{Error, ExtractError},
+    error::{Error, ExtractError, FileExtractError},
     logic::{db, extract, guess_lang, ollama, scan},
-    models::{skip_reason::SkipReason, source::Source},
+    models::{skip_reason::SkipReason, source::Source, source_items::SourceItems},
     result::IndexResult,
 };
 
@@ -41,39 +43,65 @@ impl Client {
 
     /// Indexes the project.
     pub async fn index(&self) -> Result<IndexResult, Error> {
+        let date = UtcDateTime::now();
         let mut result = IndexResult {
-            date: UtcDateTime::now(),
+            date,
             sources: HashMap::new(),
             errors: HashMap::new(),
             skipped: HashMap::new(),
         };
         let project = scan::scan(self.scan.clone()).await?;
 
-        for source in project.sources {
-            self.process_source(source, &mut result).await?;
+        let ollama_sem = Arc::new(Semaphore::new(self.vect.max_parallel()));
+
+        let mut tasks: FuturesUnordered<_> = project
+            .sources
+            .into_iter()
+            .map(|source| {
+                let client = self.clone();
+                let ollama_sem = ollama_sem.clone();
+                async move { client.process_source(source, date, &ollama_sem).await }
+            })
+            .collect();
+
+        while let Some(task_result) = tasks.next().await {
+            match task_result? {
+                SourceResult::Ok { source, items } => {
+                    result.sources.insert(source, items);
+                }
+                SourceResult::Error { source, error } => {
+                    result.errors.insert(source, error);
+                }
+                SourceResult::Skipped { path, reason } => {
+                    result.skipped.insert(path, reason);
+                }
+            }
         }
 
         Ok(result)
     }
 
-    async fn process_source(&self, source: Source, result: &mut IndexResult) -> Result<(), Error> {
+    async fn process_source(
+        &self,
+        source: Source,
+        date: UtcDateTime,
+        ollama_sem: &Semaphore,
+    ) -> Result<SourceResult, Error> {
         let lang_name = match guess_lang(source.path(), self.scan.ext_to_lang()) {
             Some(name) => name,
             None => {
-                result
-                    .skipped
-                    .insert(source.path().to_path_buf(), SkipReason::NoLang);
-                return Ok(());
+                return Ok(SourceResult::Skipped {
+                    path: source.path().to_path_buf(),
+                    reason: SkipReason::NoLang,
+                });
             }
         };
 
+        let source_clone = source.clone();
         let source_items =
-            match extract::extract(source.clone(), lang_name.clone(), &self.extract).await {
+            match extract::extract(source_clone, lang_name.clone(), &self.extract).await {
                 Ok(items) => items,
-                Err(ExtractError::File(e)) => {
-                    result.errors.insert(source, e);
-                    return Ok(());
-                }
+                Err(ExtractError::File(e)) => return Ok(SourceResult::Error { source, error: e }),
                 Err(e) => return Err(e.into()),
             };
 
@@ -82,19 +110,17 @@ impl Client {
             .iter()
             .map(|i| i.comment.content())
             .collect();
-        let embeddings = ollama::embed(texts, self.vect.clone()).await?;
+        let embeddings = {
+            let _permit = ollama_sem.acquire().await.expect("semaphore closed");
+            ollama::embed(texts, self.vect.clone()).await?
+        };
 
-        db::insert_source(
-            self.db.clone(),
-            source_items.clone(),
-            &embeddings,
-            result.date,
-        )
-        .await?;
+        db::insert_source(self.db.clone(), source_items.clone(), &embeddings, date).await?;
 
-        result.sources.insert(source, source_items);
-
-        Ok(())
+        Ok(SourceResult::Ok {
+            source,
+            items: source_items,
+        })
     }
 
     /// Searches indexed comments.
@@ -107,4 +133,19 @@ impl Client {
 
         Ok(db::search(self.db.clone(), &embedding, limit).await?)
     }
+}
+
+enum SourceResult {
+    Ok {
+        source: Source,
+        items: SourceItems,
+    },
+    Error {
+        source: Source,
+        error: FileExtractError,
+    },
+    Skipped {
+        path: std::path::PathBuf,
+        reason: SkipReason,
+    },
 }

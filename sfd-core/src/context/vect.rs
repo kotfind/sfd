@@ -18,6 +18,7 @@ struct VectContextInner {
     client: Client,
     max_len: usize,
     vec_size: usize,
+    max_parallel: usize,
 }
 
 impl VectContext {
@@ -35,6 +36,7 @@ impl VectContext {
                 client,
                 max_len: config.vect.max_len,
                 vec_size: config.vect.vec_size,
+                max_parallel: config.vect.ollama.max_parallel,
             }),
         };
 
@@ -61,5 +63,9 @@ impl VectContext {
 
     pub(crate) fn vec_size(&self) -> usize {
         self.inner.vec_size
+    }
+
+    pub(crate) fn max_parallel(&self) -> usize {
+        self.inner.max_parallel
     }
 }

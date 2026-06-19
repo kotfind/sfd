@@ -1,4 +1,4 @@
-use std::{path::Path, str::FromStr};
+use std::{path::Path, str::FromStr, time::Duration};
 
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePool};
 
@@ -25,7 +25,9 @@ pub async fn connect(config: &Config, allow_create: bool) -> Result<DbContext, D
         return Err(DbError::NotFound);
     }
 
-    let options = SqliteConnectOptions::from_str(&db_path)?.create_if_missing(allow_create);
+    let options = SqliteConnectOptions::from_str(&db_path)?
+        .create_if_missing(allow_create)
+        .busy_timeout(Duration::from_secs(config.db.busy_timeout));
     let pool = SqlitePool::connect_with(options).await?;
 
     if is_new {
