@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use time::UtcDateTime;
 
 use crate::{
@@ -7,6 +9,7 @@ use crate::{
     error::{Error, ExtractError},
     logic::{db, extract, guess_lang, ollama, scan},
     models::source::Source,
+    result::{IndexResult, SkipReason},
 };
 
 /// App client.
@@ -37,36 +40,42 @@ impl Client {
     }
 
     /// Indexes the project.
-    pub async fn index(&self) -> Result<(), Error> {
+    pub async fn index(&self) -> Result<IndexResult, Error> {
+        let mut result = IndexResult {
+            date: UtcDateTime::now(),
+            sources: HashMap::new(),
+            errors: HashMap::new(),
+            skipped: HashMap::new(),
+        };
         let project = scan::scan(self.scan.clone()).await?;
 
         for source in project.sources {
-            self.process_source(source).await?;
+            self.process_source(source, &mut result).await?;
         }
 
-        Ok(())
+        Ok(result)
     }
 
-    async fn process_source(&self, source: Source) -> Result<(), Error> {
+    async fn process_source(&self, source: Source, result: &mut IndexResult) -> Result<(), Error> {
         let lang_name = match guess_lang(source.path(), self.scan.ext_to_lang()) {
             Some(name) => name,
             None => {
-                eprintln!(
-                    "extraction error: no language detected for `{}`",
-                    source.path().display()
-                );
+                result
+                    .skipped
+                    .insert(source.path().to_path_buf(), SkipReason::NoLang);
                 return Ok(());
             }
         };
 
-        let source_items = match extract::extract(source, &lang_name, &self.extract).await {
-            Ok(items) => items,
-            Err(ExtractError::File(e)) => {
-                eprintln!("extraction error: {e}");
-                return Ok(());
-            }
-            Err(e) => return Err(e.into()),
-        };
+        let source_items =
+            match extract::extract(source.clone(), lang_name.clone(), &self.extract).await {
+                Ok(items) => items,
+                Err(ExtractError::File(e)) => {
+                    result.errors.insert(source, e);
+                    return Ok(());
+                }
+                Err(e) => return Err(e.into()),
+            };
 
         let texts: Vec<&str> = source_items
             .items
@@ -75,8 +84,15 @@ impl Client {
             .collect();
         let embeddings = ollama::embed(texts, self.vect.clone()).await?;
 
-        let now = UtcDateTime::now();
-        db::insert_source(self.db.clone(), source_items, &embeddings, now).await?;
+        db::insert_source(
+            self.db.clone(),
+            source_items.clone(),
+            &embeddings,
+            result.date,
+        )
+        .await?;
+
+        result.sources.insert(source, source_items);
 
         Ok(())
     }

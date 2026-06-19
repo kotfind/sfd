@@ -36,7 +36,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new(&config, allow_create_db).await?;
 
     match args.command {
-        Command::Index => client.index().await?,
+        Command::Index => {
+            // TODO: display result
+            client.index().await?;
+        }
         Command::Search { query, number } => {
             let results = client.search(&query, number).await?;
             for r in results {

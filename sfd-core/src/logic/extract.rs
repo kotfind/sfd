@@ -19,10 +19,10 @@ pub const ITEM_CAPTURE: &str = "item";
 /// Extracts all the [Item]s from a [Source].
 pub async fn extract(
     src: Source,
-    lang_name: &LangName,
+    lang_name: LangName,
     ctx: &ExtractContext,
 ) -> Result<SourceItems, ExtractError> {
-    let lang = ctx.get_lang(lang_name);
+    let lang = ctx.get_lang(&lang_name);
     let content = tokio::fs::read_to_string(src.path()).await?;
     let tree = parse(&content, &lang, ctx)?;
 

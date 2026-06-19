@@ -4,7 +4,7 @@ use std::{
 };
 
 /// A source file.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Source {
     path: Arc<PathBuf>,
 }
