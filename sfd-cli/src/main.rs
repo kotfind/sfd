@@ -44,8 +44,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!(
                     "{}:{}:{} ({:.0}%) {}",
                     r.file.display(),
-                    r.line + 1,
-                    r.col + 1,
+                    r.line_num + 1,
+                    r.col_num + 1,
                     sim,
                     r.text,
                 );

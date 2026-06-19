@@ -8,8 +8,8 @@ use crate::{
     context::{ExtractContext, LangContext},
     error::ExtractError,
     models::{
-        comment::Comment, ident::Ident, item::Item, source::Source, source_items::SourceItems,
-        span::Span,
+        comment::Comment, ident::Ident, item::Item, location::Location, source::Source,
+        source_items::SourceItems,
     },
 };
 
@@ -69,9 +69,9 @@ fn match_to_item(
 
     let offset = item_node.start_byte();
     let pos = item_node.start_position();
-    let span = Span::new(src, offset, pos.row, pos.column);
+    let loc = Location::new(src, offset, pos.row, pos.column);
 
-    Ok(Item::new(comment, ident, span))
+    Ok(Item::new(comment, ident, loc))
 }
 
 /// Gets all the captures with a `name` and asserts their amount is in a `range`.

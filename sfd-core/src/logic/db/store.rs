@@ -59,14 +59,14 @@ pub async fn insert_source(
         sqlx::query(
             "
             INSERT
-            INTO item (source_id, offset, line, col, comment_content, comment_vec_id)
+            INTO item (source_id, item_offset, item_line_num, item_col_num, comment_content, comment_vec_id)
             VALUES (?, ?, ?, ?, ?, ?)
             ",
         )
         .bind(source_id)
-        .bind(item.span.offset as i64)
-        .bind(item.span.line as i64)
-        .bind(item.span.col as i64)
+        .bind(item.loc.offset as i64)
+        .bind(item.loc.line_num as i64)
+        .bind(item.loc.col_num as i64)
         .bind(item.comment.content())
         .bind(vec_result.last_insert_rowid())
         .execute(&mut *tx)

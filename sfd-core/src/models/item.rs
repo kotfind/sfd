@@ -1,6 +1,6 @@
-use crate::models::{comment::Comment, ident::Ident, span::Span};
+use crate::models::{comment::Comment, ident::Ident, location::Location};
 
-/// [Ident] with a [Comment] and a [Span].
+/// [Ident] with a [Comment] and a [Location].
 #[derive(Debug, Clone)]
 pub struct Item {
     pub comment: Comment,
@@ -8,15 +8,15 @@ pub struct Item {
     pub ident: Ident,
 
     /// A location of the `ident`.
-    pub span: Span,
+    pub loc: Location,
 }
 
 impl Item {
-    pub fn new(comment: Comment, ident: Ident, span: Span) -> Self {
+    pub fn new(comment: Comment, ident: Ident, loc: Location) -> Self {
         Self {
             comment,
             ident,
-            span,
+            loc,
         }
     }
 }

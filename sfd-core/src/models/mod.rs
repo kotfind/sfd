@@ -3,7 +3,7 @@ pub mod embedding;
 pub mod ident;
 pub mod item;
 pub mod lang_name;
+pub mod location;
 pub mod project_sources;
 pub mod source;
 pub mod source_items;
-pub mod span;

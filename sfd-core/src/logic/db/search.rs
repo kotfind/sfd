@@ -7,9 +7,9 @@ use crate::{context::DbContext, error::DbError, models::embedding::Embedding};
 pub struct SearchResult {
     pub file: PathBuf,
 
-    pub line: usize,
+    pub line_num: usize,
 
-    pub col: usize,
+    pub col_num: usize,
 
     pub text: String,
 
@@ -29,7 +29,7 @@ pub async fn search(
     let rows: Vec<(i64, i64, String, String, f64)> =
         sqlx::query_as::<_, (i64, i64, String, String, f64)>(
             "
-        SELECT item.line, item.col, item.comment_content, source.path, distance as dist
+        SELECT item.item_line_num, item.item_col_num, item.comment_content, source.path, distance as dist
         FROM vec
         LEFT JOIN item ON item.comment_vec_id = vec.rowid
         LEFT JOIN source ON source.id = item.source_id
@@ -44,10 +44,10 @@ pub async fn search(
 
     Ok(rows
         .into_iter()
-        .map(|(line, col, text, path, distance)| SearchResult {
+        .map(|(line_num, col_num, text, path, distance)| SearchResult {
             file: PathBuf::from(path),
-            line: line as usize,
-            col: col as usize,
+            line_num: line_num as usize,
+            col_num: col_num as usize,
             text,
             sim: 1.0 - distance / 2.0,
         })

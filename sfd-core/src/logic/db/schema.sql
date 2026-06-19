@@ -7,9 +7,9 @@ CREATE TABLE source (
 CREATE TABLE item (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     source_id INTEGER NOT NULL REFERENCES source(id) ON DELETE CASCADE,
-    offset INTEGER NOT NULL,
-    line INTEGER NOT NULL,
-    col INTEGER NOT NULL,
+    item_offset INTEGER NOT NULL,
+    item_line_num INTEGER NOT NULL,
+    item_col_num INTEGER NOT NULL,
     comment_content TEXT NOT NULL,
     -- REFERENCES vec(rowid)
     comment_vec_id INTEGER NOT NULL
