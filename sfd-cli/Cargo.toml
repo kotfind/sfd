@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
 sfd-core = { workspace = true }
+thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

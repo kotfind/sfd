@@ -9,4 +9,5 @@ pub mod result;
 mod util;
 
 pub use client::Client;
+pub use error::Error;
 pub use result::SearchResult;
