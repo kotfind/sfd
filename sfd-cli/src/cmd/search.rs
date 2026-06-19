@@ -20,7 +20,7 @@ pub struct SearchCmd {
 pub async fn run(cmd: SearchCmd, client: Client) -> Result<(), Error> {
     let results = client.search(&cmd.query, cmd.number).await?;
     let rows: Vec<SearchRow> = results.into_iter().map(SearchRow::from).collect();
-    table::print(rows);
+    table::print(rows, Some("Search Results"));
 
     Ok(())
 }
