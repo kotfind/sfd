@@ -17,6 +17,7 @@ struct VectContextInner {
     model: String,
     client: Client,
     max_len: usize,
+    vec_size: usize,
 }
 
 impl VectContext {
@@ -33,6 +34,7 @@ impl VectContext {
                 model: config.vect.ollama.model.clone(),
                 client,
                 max_len: config.vect.max_len,
+                vec_size: config.vect.vec_size,
             }),
         };
 
@@ -55,5 +57,9 @@ impl VectContext {
 
     pub(crate) fn max_len(&self) -> usize {
         self.inner.max_len
+    }
+
+    pub(crate) fn vec_size(&self) -> usize {
+        self.inner.vec_size
     }
 }

@@ -29,7 +29,7 @@ pub async fn connect(config: &Config, allow_create: bool) -> Result<DbContext, D
     let pool = SqlitePool::connect_with(options).await?;
 
     if is_new {
-        init(&pool).await?;
+        init(&pool, config.vect.vec_size).await?;
     } else {
         let stored =
             sqlx::query_as::<_, (String,)>("SELECT value FROM setting WHERE key = 'schema_hash'")

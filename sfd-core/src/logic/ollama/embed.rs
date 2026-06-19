@@ -20,6 +20,8 @@ pub async fn embed(
     texts: impl IntoIterator<Item = impl AsRef<str>>,
     ctx: VectContext,
 ) -> Result<Vec<Embedding>, VectError> {
+    let vec_size = ctx.vec_size();
+
     let input: Vec<String> = texts
         .into_iter()
         .map(|t| prepare(t.as_ref(), ctx.clone()))
@@ -36,5 +38,19 @@ pub async fn embed(
         .await?;
     let data: EmbedResponse = resp.error_for_status()?.json().await?;
 
-    Ok(data.embeddings.into_iter().map(Embedding::new).collect())
+    let embeddings = data
+        .embeddings
+        .into_iter()
+        .map(|e| {
+            if e.len() == vec_size {
+                return Ok(Embedding::new(e));
+            }
+            Err(VectError::VectSize {
+                config_value: vec_size,
+                model_value: e.len(),
+            })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(embeddings)
 }

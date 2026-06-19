@@ -16,7 +16,8 @@ CREATE TABLE item (
 );
 
 CREATE VIRTUAL TABLE vec USING vec0(
-    value FLOAT[768] DISTANCE_METRIC=COSINE
+    -- __VEC_SIZE__ placeholder should be replaced by rust code
+    value FLOAT[__VEC_SIZE__] DISTANCE_METRIC=COSINE
 );
 
 CREATE TABLE setting (
