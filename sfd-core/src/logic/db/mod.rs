@@ -6,5 +6,5 @@ mod store;
 
 pub use connect::connect;
 pub use load_extension::{VecExtLoadProof, load};
-pub use search::{SearchResult, search};
+pub use search::search;
 pub use store::insert_source;

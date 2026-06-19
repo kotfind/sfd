@@ -1,6 +1,7 @@
 use time::UtcDateTime;
 
 use crate::{
+    SearchResult,
     config::Config,
     context::{DbContext, ExtractContext, ScanContext, VectContext},
     error::Error,
@@ -83,7 +84,7 @@ impl Client {
     }
 
     /// Searches indexed comments.
-    pub async fn search(&self, query: &str, limit: u32) -> Result<Vec<db::SearchResult>, Error> {
+    pub async fn search(&self, query: &str, limit: u32) -> Result<Vec<SearchResult>, Error> {
         let embedding = ollama::embed([query], self.vect.clone())
             .await?
             .into_iter()

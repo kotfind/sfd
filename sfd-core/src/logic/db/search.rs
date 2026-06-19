@@ -4,20 +4,8 @@ use crate::{
     context::DbContext,
     error::DbError,
     models::{embedding::Embedding, location::Location, source::Source},
+    result::SearchResult,
 };
-
-/// A search result.
-#[derive(Debug, Clone)]
-pub struct SearchResult {
-    pub loc: Location,
-
-    pub text: String,
-
-    /// Semantic similarity to the query.
-    ///
-    /// Is in `[0; 1]` range.
-    pub sim: f64,
-}
 
 /// Searches for the `limit` closest items to `embedding`.
 pub async fn search(

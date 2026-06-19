@@ -5,6 +5,8 @@ pub mod dirs;
 pub mod error;
 pub mod logic;
 pub mod models;
+pub mod result;
 mod util;
 
 pub use client::Client;
+pub use result::SearchResult;
