@@ -8,8 +8,8 @@ use crate::{
     context::{ExtractContext, LangContext},
     error::ExtractError,
     models::{
-        comment::Comment, ident::Ident, item::Item, location::Location, source::Source,
-        source_items::SourceItems,
+        comment::Comment, ident::Ident, item::Item, lang_name::LangName, location::Location,
+        source::Source, source_items::SourceItems,
     },
 };
 
@@ -17,13 +17,11 @@ pub const COMMENT_CAPTURE: &str = "comment";
 pub const ITEM_CAPTURE: &str = "item";
 
 /// Extracts all the [Item]s from a [Source].
-pub async fn extract(src: Source, ctx: &ExtractContext) -> Result<SourceItems, ExtractError> {
-    let ext = src.path().extension().and_then(|e| e.to_str());
-    let lang_name = ext
-        .and_then(|e| ctx.ext_to_lang(e))
-        .ok_or_else(|| ExtractError::NoLang {
-            path: src.path().to_path_buf(),
-        })?;
+pub async fn extract(
+    src: Source,
+    lang_name: &LangName,
+    ctx: &ExtractContext,
+) -> Result<SourceItems, ExtractError> {
     let lang = ctx.get_lang(lang_name);
     let content = tokio::fs::read_to_string(src.path()).await?;
     let tree = parse(&content, &lang, ctx)?;

@@ -4,7 +4,8 @@ use crate::{
     config::Config,
     context::{DbContext, ExtractContext, ScanContext, VectContext},
     error::Error,
-    logic::{db, extract, ollama, scan},
+    logic::{db, extract, guess_lang, ollama, scan},
+    models::source::Source,
 };
 
 /// App client.
@@ -39,27 +40,44 @@ impl Client {
         let project = scan::scan(self.scan.clone()).await?;
 
         for source in project.sources {
-            let source_items = match extract::extract(source, &self.extract).await {
-                Ok(items) => items,
-                Err(e) => {
-                    if e.is_file_local() {
-                        eprintln!("extraction error: {e}");
-                        continue;
-                    }
-                    return Err(Error::Extract(e));
-                }
-            };
-
-            let texts: Vec<&str> = source_items
-                .items
-                .iter()
-                .map(|i| i.comment.content())
-                .collect();
-            let embeddings = ollama::embed(texts, self.vect.clone()).await?;
-
-            let now = UtcDateTime::now();
-            db::insert_source(self.db.clone(), source_items, &embeddings, now).await?;
+            self.process_source(source).await?;
         }
+
+        Ok(())
+    }
+
+    async fn process_source(&self, source: Source) -> Result<(), Error> {
+        let lang_name = match guess_lang(source.path(), self.scan.ext_to_lang()) {
+            Some(name) => name,
+            None => {
+                eprintln!(
+                    "extraction error: no language detected for `{}`",
+                    source.path().display()
+                );
+                return Ok(());
+            }
+        };
+
+        let source_items = match extract::extract(source, &lang_name, &self.extract).await {
+            Ok(items) => items,
+            Err(e) => {
+                if e.is_file_local() {
+                    eprintln!("extraction error: {e}");
+                    return Ok(());
+                }
+                return Err(Error::Extract(e));
+            }
+        };
+
+        let texts: Vec<&str> = source_items
+            .items
+            .iter()
+            .map(|i| i.comment.content())
+            .collect();
+        let embeddings = ollama::embed(texts, self.vect.clone()).await?;
+
+        let now = UtcDateTime::now();
+        db::insert_source(self.db.clone(), source_items, &embeddings, now).await?;
 
         Ok(())
     }
