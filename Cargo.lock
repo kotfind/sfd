@@ -2282,7 +2282,9 @@ version = "0.19.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c81261f36caa45c87762df18f5e9a834376686b35742e65fe5ed1c7093e1d3e"
 dependencies = [
+ "convert_case",
  "garde",
+ "indexmap",
  "miette",
  "schematic_macros",
  "schematic_types",
@@ -2460,6 +2462,8 @@ name = "sfd-cli"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "miette",
+ "schematic",
  "sfd-core",
  "tabled",
  "thiserror 2.0.18",

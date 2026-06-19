@@ -3,7 +3,7 @@ mod error;
 mod view;
 
 use clap::{Parser, Subcommand};
-use cmd::{index::IndexCmd, search::SearchCmd};
+use cmd::{index::IndexCmd, sample_config::SampleConfigCmd, search::SearchCmd};
 use sfd_core::{Client, config::Config};
 
 use crate::error::Error;
@@ -22,6 +22,7 @@ struct Args {
 enum Command {
     Index(IndexCmd),
     Search(SearchCmd),
+    SampleConfig(SampleConfigCmd),
 }
 
 #[tokio::main]
@@ -35,6 +36,7 @@ async fn main() -> Result<(), Error> {
     match args.command {
         Command::Index(cmd) => cmd::index::run(cmd, client).await?,
         Command::Search(cmd) => cmd::search::run(cmd, client).await?,
+        Command::SampleConfig(cmd) => cmd::sample_config::run(cmd).await?,
     }
 
     Ok(())

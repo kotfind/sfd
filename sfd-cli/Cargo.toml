@@ -5,6 +5,12 @@ edition = "2024"
 
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
+schematic = { workspace = true, features = [
+    "schema",
+    "renderer_template",
+    "yaml",
+] }
+miette = { workspace = true }
 sfd-core = { workspace = true }
 tabled = { workspace = true }
 thiserror = { workspace = true }

@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 tokio = { workspace = true, features = ["full"] }
 thiserror = { workspace = true }
-schematic = { workspace = true, features = ["yaml"] }
+schematic = { workspace = true, features = ["yaml", "schema"] }
 serde = { workspace = true, features = ["derive"] }
 directories = { workspace = true }
 url = { workspace = true, features = ["serde"] }

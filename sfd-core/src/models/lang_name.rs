@@ -1,11 +1,18 @@
 use std::{fmt, sync::Arc};
 
+use schematic::{Schema, SchemaBuilder, Schematic};
 use serde::{Deserialize, Serialize};
 
 /// A name of a language.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct LangName(Arc<str>);
+
+impl Schematic for LangName {
+    fn build_schema(schema: SchemaBuilder) -> Schema {
+        schema.infer::<String>()
+    }
+}
 
 impl LangName {
     pub fn new(name: impl Into<Arc<str>>) -> Self {
