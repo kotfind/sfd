@@ -5,5 +5,6 @@ pub mod item;
 pub mod lang_name;
 pub mod location;
 pub mod project_sources;
+pub mod skip_reason;
 pub mod source;
 pub mod source_items;

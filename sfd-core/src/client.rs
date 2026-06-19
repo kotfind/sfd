@@ -8,8 +8,8 @@ use crate::{
     context::{DbContext, ExtractContext, ScanContext, VectContext},
     error::{Error, ExtractError},
     logic::{db, extract, guess_lang, ollama, scan},
-    models::source::Source,
-    result::{IndexResult, SkipReason},
+    models::{skip_reason::SkipReason, source::Source},
+    result::IndexResult,
 };
 
 /// App client.
