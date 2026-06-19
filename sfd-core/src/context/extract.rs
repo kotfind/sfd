@@ -13,9 +13,8 @@ use crate::{
 
 #[derive(Debug)]
 struct LangContextInner {
+    #[allow(dead_code)] // for debug
     name: LangName,
-
-    exts: Vec<String>,
 
     lang: Language,
 
@@ -29,14 +28,9 @@ pub struct LangContext {
 }
 
 impl LangContext {
-    fn new(name: LangName, exts: Vec<String>, lang: Language, query: Query) -> Self {
+    fn new(name: LangName, lang: Language, query: Query) -> Self {
         Self {
-            inner: Arc::new(LangContextInner {
-                name,
-                exts,
-                lang,
-                query,
-            }),
+            inner: Arc::new(LangContextInner { name, lang, query }),
         }
     }
 
@@ -102,10 +96,7 @@ impl ExtractContext {
                 ext_to_lang.insert(ext.clone(), name.clone());
             }
 
-            langs.insert(
-                name.clone(),
-                LangContext::new(name.clone(), lang_cfg.exts.clone(), lang, query),
-            );
+            langs.insert(name.clone(), LangContext::new(name.clone(), lang, query));
         }
 
         Ok(Self {
